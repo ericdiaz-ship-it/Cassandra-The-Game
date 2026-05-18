@@ -661,11 +661,11 @@
 
 <script>
 // ═══════════════════════════════════════════════════════════
-//  CONFIG — loaded from config.js
+//  CONFIG — cargado desde config.js / .env
 // ═══════════════════════════════════════════════════════════
 const GEMINI_KEY    = CONFIG.GEMINI_KEY;
 const GEMINI_MODEL  = CONFIG.GEMINI_MODEL;
-const GEMINI_URL    = window.GEMINI_URL;
+const GEMINI_URL    = CONFIG.GEMINI_URL;
 
 const SUPABASE_URL  = CONFIG.SUPABASE_URL;
 const SUPABASE_KEY  = CONFIG.SUPABASE_KEY;
@@ -1002,9 +1002,14 @@ async function send() {
   };
 
   try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (GEMINI_KEY && !GEMINI_URL.includes('/api')) {
+      headers.Authorization = `Bearer ${GEMINI_KEY}`;
+    }
+
     const res = await fetch(GEMINI_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload)
     });
 
