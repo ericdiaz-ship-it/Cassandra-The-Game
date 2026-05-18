@@ -1,0 +1,25 @@
+{
+  "name": "cassandra-the-game",
+  "version": "0.7.0",
+  "description": "CASSANDRA - Interactive FBI Terminal Game",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Open index.html in your browser'",
+    "build": "echo 'Static site - no build needed'"
+  },
+  "keywords": [
+    "game",
+    "fbi",
+    "interactive",
+    "mystery"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^2.6.13"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": "18.x"
+  }
+}

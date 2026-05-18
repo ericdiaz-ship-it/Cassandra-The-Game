@@ -1,8 +1,14 @@
-# Environment variables
+# Environment variables - MUST NOT be committed
 .env
 .env.local
 .env.*.local
-config.js
+
+# API keys and secrets - MUST NOT be committed  
+config.js.bak
+*.key
+*.pem
+*.cert
+*.crt
 
 # Dependencies
 node_modules/
@@ -28,6 +34,7 @@ Thumbs.db
 logs/
 *.log
 npm-debug.log*
+yarn-error.log*
 
 # Build outputs
 dist/
@@ -40,14 +47,15 @@ tmp/
 temp/
 *.tmp
 
-# Sensitive data
-*.pem
-*.key
-*.cert
-secrets/
-
 # Python
 __pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Node dev
+.env.development
+.env.test
 *.py[cod]
 *$py.class
 .Python

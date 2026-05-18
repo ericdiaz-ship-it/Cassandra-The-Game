@@ -663,9 +663,9 @@
 // ═══════════════════════════════════════════════════════════
 //  CONFIG — loaded from config.js
 // ═══════════════════════════════════════════════════════════
-const GEMINI_KEY    = CONFIG.GEMINI_KEY;
-const GEMINI_MODEL  = CONFIG.GEMINI_MODEL;
-const GEMINI_URL    = window.GEMINI_URL;
+const API_BASE = CONFIG.API_BASE || '/api';
+const CHAT_API = CONFIG.CHAT_API || '/api/chat';
+const DOCS_API = CONFIG.DOCS_API || '/api/documents';
 
 const SUPABASE_URL  = CONFIG.SUPABASE_URL;
 const SUPABASE_KEY  = CONFIG.SUPABASE_KEY;
@@ -1002,7 +1002,7 @@ async function send() {
   };
 
   try {
-    const res = await fetch(GEMINI_URL, {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
