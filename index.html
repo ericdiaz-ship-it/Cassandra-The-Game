@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASSANDRA v0.7b - FBI TERMINAL</title>
+    <style>
+        /* --- ESTILOS DE TERMINAL FBI --- */
+        :root {
+            --fbi-green: #00FF41;
+            --fbi-bg: #050505;
+            --fbi-panel: #111;
+            --fbi-border: #333;
+            --fbi-text: #ccc;
+            --fbi-accent: #008f11;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background: var(--fbi-bg); color: var(--fbi-text);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* Contenedor Principal */
+        #terminal-wrapper {
+            width: 90%; max-width: 1000px; height: 95vh;
+            display: flex; flex-direction: column; margin-top: 2vh;
+        }
+
+        /* Cabecera del Sistema */
+        .system-header {
+            text-align: center; border-bottom: 2px solid var(--fbi-green);
+            padding-bottom: 10px; margin-bottom: 20px;
+        }
+        .system-header h1 { color: var(--fbi-green); margin: 0; font-size: 24px; letter-spacing: 2px; }
+        .system-header p { font-size: 12px; color: #666; margin: 5px 0; }
+
+        /* Caja del Briefing (Dossier) */
+        .briefing-box {
+            flex: 1; background: var(--fbi-panel); border: 1px solid var(--fbi-border);
+            padding: 40px; overflow-y: auto; box-shadow: inset 0 0 50px #000;
+            line-height: 1.5; font-size: 14px;
+        }
+
+        /* Estructura de Secciones */
+        section { margin-bottom: 50px; border-left: 3px solid var(--fbi-border); padding-left: 20px; }
+        h2 { color: var(--fbi-green); font-size: 18px; text-transform: uppercase; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        h3 { color: #fff; font-size: 15px; margin-top: 25px; }
+        
+        /* Tablas y Datos */
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #0a0a0a; }
+        table th, table td { border: 1px solid #222; padding: 12px; text-align: left; vertical-align: top; }
+        table th { background: #1a1a1a; color: var(--fbi-green); font-size: 12px; }
+
+        .summary-block {
+            background: #1a1a1a; border: 1px solid var(--fbi-accent);
+            padding: 20px; margin: 20px 0; border-radius: 4px;
+        }
+        .summary-item { margin-bottom: 10px; display: flex; }
+        .summary-label { color: var(--fbi-green); font-weight: bold; width: 150px; flex-shrink: 0; }
+
+        /* --- EFECTO DE TEXTO CENSURADO --- */
+        .redacted { 
+            background: #444; 
+            color: #444; 
+            padding: 0 4px; 
+            cursor: crosshair; 
+            user-select: none;
+            transition: background 0.8s ease, color 0.8s ease, text-shadow 0.8s ease;
+        }
+        .redacted:hover {
+            background: #555;
+            color: #555;
+        }
+        .redacted.revealed {
+            background: transparent;
+            color: #ff4d4d;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(255, 77, 77, 0.6);
+            cursor: default;
+        }
+
+        .critical-warning { border: 1px solid #b22222; color: #ff6b6b; padding: 15px; background: #2a0a0a; margin: 10px 0; }
+        
+        /* Listas Metodológicas */
+        ul { list-style: none; padding: 0; }
+        li { margin-bottom: 10px; padding-left: 20px; position: relative; }
+        li::before { content: ">"; position: absolute; left: 0; color: var(--fbi-green); }
+
+        /* Footer de Acceso */
+        .access-footer {
+            background: #000; padding: 20px; border-top: 1px solid var(--fbi-border);
+            display: flex; justify-content: center; gap: 30px; align-items: center;
+        }
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        .input-group label { font-size: 11px; color: #666; }
+        input { 
+            background: #000; border: 1px solid var(--fbi-green); color: var(--fbi-green);
+            padding: 10px; outline: none; font-family: monospace; width: 200px;
+        }
+        .btn-enter {
+            background: var(--fbi-green); color: #000; border: none;
+            padding: 15px 30px; font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .btn-enter:disabled { background: #222; color: #444; cursor: not-allowed; }
+        .btn-enter:hover:not(:disabled) { background: #fff; box-shadow: 0 0 15px var(--fbi-green); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: var(--fbi-border); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--fbi-green); }
+    </style>
+</head>
+<body>
+
+<div id="terminal-wrapper">
+    <div class="system-header">
+        <p>UNITED STATES GOVERNMENT - CLASSIFIED MATERIAL</p>
+        <h1>PROYECTO CASSANDRA v0.7b</h1>
+        <p>CASE ID: CV-2004-ESP-0918 | SECURE TERMINAL AC04</p>
+    </div>
+
+    <div class="briefing-box">
+        <section>
+            <h2>SECCIÓN 1 — INSTRUCCIONES PARA EL AGENTE ESPECIAL</h2>
+            <h3>1.1 SITUACIÓN GENERAL</h3>
+            <p>Agente, ha sido seleccionado como parte de un grupo de élite de ocho investigadores del FBI para participar en la primera prueba de campo real del Proyecto CASSANDRA. Usted se encuentra en el <b>año 2004</b>, en un momento en que la tecnología de inteligencia artificial aplicada a la investigación criminal aún es experimental. El Bureau ha invertido más de cuatro años y diecisiete millones de dólares en desarrollar una herramienta que podría transformar para siempre la forma en que resolvemos casos.</p>
+            <p>Su misión en este momento es específica y acotada: investigar la muerte de <b>Don Alonso Cuervo Medina</b>, 70 años, patriarca de los Viñedos Cuervo, fallecido en la madrugada del 19 de septiembre de 2004 en su domicilio de Cervendillo, Salamanca, España. La muerte fue certificada inicialmente como natural por el médico rural local. El Bureau tiene razones para creer que esto no es correcto.</p>
+            
+            <h3>1.2 SU HERRAMIENTA: EL SISTEMA CASSANDRA</h3>
+            <p>CASSANDRA (Computer-Assisted System for Suspect Analysis and Narrative Deconstruction using Reconstructive Intelligence Algorithms) es una aplicación experimental integrada dentro de un entorno simulado de Windows XP que el Bureau ha desarrollado en colaboración con el MIT Media Lab y la NSA. El sistema le permite:</p>
+            <ul>
+                <li>Interrogar de forma virtual a todos los sospechosos del caso mediante un módulo de chat que simula sus patrones de habla, psicología y acceso a la información. Cada sospechoso tiene cargada su historia, sus secretos y sus coartadas.</li>
+                <li>Explorar un entorno digital réplica del escritorio del PC del domicilio de la víctima, donde se han volcado correos electrónicos, mensajes, fotografías, documentos, noticias y registros financieros.</li>
+            </ul>
+
+            <h3>1.3 POR QUÉ ESTÁ USTED AQUÍ</h3>
+            <p>El médico de guardia certificó la muerte de Don Alonso como paro cardíaco natural. Sin embargo, tras recibir un aviso confidencial, el análisis preliminar de toxicología avanzada en Virginia detectó trazas de glucósido cardíaco compatible con <i>Digitalis purpurea</i>. Alguien perpetró un <span class="redacted" title="Haga clic para descifrar">ASESINATO POR ENVENENAMIENTO</span> en su propia casa, en la noche de una cena familiar. Y lo hizo de una forma tan calculada que casi pasó desapercibido. Su trabajo es descubrir quién.</p>
+        </section>
+
+        <section>
+            <h2>SECCIÓN 2 — PROTOCOLO OPERATIVO</h2>
+            <h3>2.1 ARQUITECTURA DEL SISTEMA</h3>
+            <table>
+                <tr>
+                    <th>MÓDULO A: INTERROGATORIO</th>
+                    <th>MÓDULO B: EXPLORACIÓN</th>
+                </tr>
+                <tr>
+                    <td>Accesible desde 'CASSANDRA Chat'. Permite conversaciones en tiempo real. Los perfiles de IA están diseñados para proteger sus secretos; mentirán y desviarán el tema. El sistema adaptará las respuestas según la información que usted presente.</td>
+                    <td>El escritorio de Windows XP. Funciona como escenario de investigación. Contiene Outlook Express, MSN, Mis Documentos y Papelera. Algunos archivos requieren acciones específicas para acceder a ellos.</td>
+                </tr>
+            </table>
+
+            <h3>2.2 REGLAS ESTRICTAS DE OPERACIÓN</h3>
+            <ul>
+                <li><b>PROHIBICIÓN DE ACUSACIÓN:</b> El Módulo de Interrogatorio está en fase beta. Si emite una acusación directa en el chat, el protocolo redirigirá la conversación. La acusación formal solo puede realizarse mediante el Módulo de Resolución.</li>
+                <li><b>CONTRADICCIONES:</b> Distintas fuentes pueden ofrecer versiones incompatibles. Su trabajo es identificar qué versión es la verdadera y cuál es la fabricada.</li>
+                <li><b>DESBLOQUEO DE PISTAS:</b> Cierta información permanecerá bloqueada hasta que demuestre que sabe lo suficiente como para hacer la pregunta correcta presentando evidencias.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>RESUMEN TÉCNICO DEL CASO</h2>
+            <div class="summary-block">
+                <div class="summary-item"><span class="summary-label">VÍCTIMA:</span><span>Don Alonso Cuervo Medina (70 años).</span></div>
+                <div class="summary-item"><span class="summary-label">FECHA/HORA:</span><span>19 de Septiembre de 2004 (Entre 23:30 y 01:00 horas).</span></div>
+                <div class="summary-item"><span class="summary-label">LUGAR:</span><span>Cervendillo, Salamanca, España (Casa Familiar).</span></div>
+                <div class="summary-item"><span class="summary-label">CAUSA REAL:</span><span>Envenenamiento con Digitalis purpurea. Dosis calculada para simular infarto.</span></div>
+                <div class="summary-item"><span class="summary-label">SOSPECHOSOS:</span><span>5 personas en el entorno inmediato. Todos tenían motivos potenciales.</span></div>
+            </div>
+        </section>
+
+        <section>
+            <h2>SECCIÓN 4 — GUÍA METODOLÓGICA</h2>
+            <table>
+                <tr><th>TIPO DE EVIDENCIA</th><th>DESCRIPCIÓN</th></tr>
+                <tr><td>Documentos Legales</td><td>Testamentos y borradores notariales.</td></tr>
+                <tr><td>Registros MSN</td><td>Logs de conversaciones que creyeron privadas.</td></tr>
+                <tr><td>Informes Forenses</td><td>Análisis de paternidad.</td></tr>
+                <tr><td>Recibos Farmacia</td><td>Prueba de adquisición del medio venenoso.</td></tr>
+            </table>
+
+            <h3>FASES RECOMENDADAS</h3>
+            <p>1. <b>Reconocimiento:</b> Explore el escritorio completo antes de interrogar a nadie.<br>
+               2. <b>Contextualización:</b> Conecte documentos. Busque fechas o nombres que no cuadren.<br>
+               3. <b>Presión:</b> Presente evidencias específicas en el chat para romper coartadas.</p>
+        </section>
+
+        <section>
+            <h2>SECCIÓN 5 — RESOLUCIÓN Y CONSECUENCIAS</h2>
+            <div class="critical-warning">
+                <b>ADVERTENCIA CRÍTICA:</b> Activar el Módulo de Resolución prematuramente tiene consecuencias irreversibles en la narrativa y en la operación. Una resolución prematura <b>enviará a un inocente a la cárcel y dejará al verdadero culpable libre por la calle</b>. Solo proceda si tiene el motivo, el medio y la oportunidad confirmados sin lugar a dudas.
+            </div>
+            <p>Si su resolución es correcta y está respaldada por evidencias sólidas, se iniciará el protocolo de transmisión a las autoridades españolas (Guardia Civil y EUROPOL) para proceder a la detención del sospechoso identificado.</p>
+        </section>
+    </div>
+
+    <div class="access-footer">
+        <div class="input-group">
+            <label>BADGE NUMBER (4+ DIGITS)</label>
+            <input type="text" id="badge" placeholder="0000" maxlength="6">
+        </div>
+        <div class="input-group">
+            <label>AGENT SIGNATURE</label>
+            <input type="text" id="signature" placeholder="INITIALS">
+        </div>
+        <button class="btn-enter" id="enter-btn" disabled>INICIAR SESIÓN CASSANDRA</button>
+    </div>
+</div>
+
+<script>
+    // --- Lógica de Validación del Formulario ---
+    const badge = document.getElementById('badge');
+    const signature = document.getElementById('signature');
+    const btn = document.getElementById('enter-btn');
+
+    function checkInputs() {
+        if (badge.value.length >= 4 && signature.value.length >= 2) {
+            btn.disabled = false;
+        } else {
+            btn.disabled = true;
+        }
+    }
+
+    badge.addEventListener('input', checkInputs);
+    signature.addEventListener('input', checkInputs);
+
+    btn.onclick = () => {
+        window.location.href = 'escritorio.html';
+    };
+
+    // --- Lógica de Disipación de Censura (Redacted) ---
+    const redactedElements = document.querySelectorAll('.redacted');
+    
+    redactedElements.forEach(element => {
+        element.addEventListener('click', function() {
+            // Añade la clase que disipa el fondo negro y muestra el texto
+            this.classList.add('revealed');
+            // Quitamos el title (el tooltip emergente) una vez revelado
+            this.removeAttribute('title');
+        });
+    });
+</script>
+
+</body>
+</html>

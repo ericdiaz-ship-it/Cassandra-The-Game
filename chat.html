@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASSANDRA — CV-2004-ESP-0918</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #ece9d8;
+    --panel:     #f5f4ee;
+    --border:    #7f9db9;
+    --border2:   #a0b4cc;
+    --accent:    #0050a0;
+    --accent2:   #1a6bbf;
+    --text:      #1a1a1a;
+    --dim:       #5a6a7a;
+    --dim2:      #8a9aaa;
+    --user-bg:   #ddeeff;
+    --susp-bg:   #ffffff;
+    --alert:     #cc0000;
+    --alert-t:   #cc0000;
+    --green:     #00aa00;
+    --green-t:   #00aa00;
+    --active-border: #0050a0;
+    --mono: Tahoma, 'IBM Plex Mono', monospace;
+    --sans: Tahoma, 'IBM Plex Sans', sans-serif;
+
+    /* XP chrome gradients */
+    --xp-title-top:    #2b5fd8;
+    --xp-title-mid:    #1248c4;
+    --xp-title-bot:    #0d3aa8;
+    --xp-btn-top:      #e8f0fc;
+    --xp-btn-bot:      #c0d4f0;
+    --xp-silver-top:   #f4f3ed;
+    --xp-silver-bot:   #dbd9cf;
+    --xp-chat-top:     #ffffff;
+    --xp-chat-bot:     #f0f0f0;
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background:
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(0,80,160,0.03) 2px,
+        rgba(0,80,160,0.03) 4px
+      ),
+      linear-gradient(180deg, #6a8bb5 0%, #395e96 40%, #1a3f7a 100%);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 6px;
+  }
+
+  /* ═══════════════════════════════════
+     WINDOW CHROME WRAPPER
+  ═══════════════════════════════════ */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%23c0c8d8'/%3E%3Crect width='1' height='1' fill='%23a8b4c8'/%3E%3C/svg%3E");
+    z-index: -1;
+    opacity: 0.15;
+  }
+
+  /* XP window container */
+  body > * {
+    position: relative;
+  }
+
+  /* ── TOPBAR (XP title bar) ─────── */
+  .topbar {
+    background: linear-gradient(180deg,
+      #4d8de8 0%,
+      #2b66d1 8%,
+      #1a52c4 45%,
+      #1248b8 50%,
+      #0d3eaa 55%,
+      #1050c0 92%,
+      #2060d0 100%
+    );
+    border-top: 1px solid #6a9fe8;
+    border-left: 1px solid #3060c0;
+    border-right: 1px solid #3060c0;
+    border-bottom: 1px solid #1a42a0;
+    padding: 4px 8px 4px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    gap: 16px;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* MSN butterfly / icon */
+  .topbar-dot {
+    width: 16px; height: 16px;
+    border-radius: 0;
+    background: transparent;
+    animation: none;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .topbar-dot::before {
+    content: '🔒';
+    font-size: 13px;
+    line-height: 1;
+    filter: brightness(1.8);
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.3; }
+  }
+
+  .topbar-title {
+    font-family: Tahoma, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0;
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+    text-transform: none;
+  }
+  .topbar-title strong {
+    color: #ffffff;
+  }
+  .topbar-case {
+    font-family: Tahoma, sans-serif;
+    font-size: 10px;
+    font-style: normal;
+    letter-spacing: 0;
+    color: rgba(255,255,255,0.75);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  }
+
+  /* XP window control buttons */
+  .topbar::after {
+    content: '─  □  ✕';
+    font-family: 'Marlett', Tahoma, sans-serif;
+    font-size: 10px;
+    color: white;
+    display: flex;
+    gap: 2px;
+    background: transparent;
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+  }
+
+  /* ── LAYOUT ────────────────────── */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    border: 1px solid #0d3eaa;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  /* ── SIDEBAR (Contact list) ─────── */
+  .sidebar {
+    width: 190px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #f5f4ee 0%, #eceae0 100%);
+    border-right: 1px solid #7f9db9;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-head {
+    padding: 6px 10px 5px;
+    font-family: Tahoma, sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0;
+    color: #ffffff;
+    text-transform: none;
+    background: linear-gradient(180deg, #6ea0d8 0%, #4a80c0 100%);
+    border-bottom: 1px solid #3060a8;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+  }
+
+  .sidebar-head::before {
+    content: '👥 ';
+    font-size: 11px;
+  }
+
+  .sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
+    background: #ffffff;
+  }
+
+  .sidebar-list::-webkit-scrollbar { width: 14px; }
+  .sidebar-list::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-left: 1px solid #cccccc;
+  }
+  .sidebar-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #e0e0e0, #c8c8c8);
+    border: 1px solid #ababab;
+    border-radius: 1px;
+  }
+  .sidebar-list::-webkit-scrollbar-button {
+    background: #e4e0d8;
+    border: 1px solid #ababab;
+    height: 14px;
+  }
+
+  .susp-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-left: 3px solid transparent;
+    color: #1a1a1a;
+    font-family: Tahoma, sans-serif;
+    font-size: 11px;
+    font-weight: normal;
+    padding: 5px 8px 5px 10px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.1s;
+    letter-spacing: 0;
+    gap: 6px;
+  }
+
+  /* MSN contact icon */
+  .susp-btn::before {
+    content: '😶';
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .susp-btn:hover {
+    color: #1a1a1a;
+    background: #d5e8f8;
+  }
+
+  .susp-btn.active {
+    color: #1a1a1a;
+    background: linear-gradient(90deg, #cce0f5, #e8f2fc);
+    border-left-color: #0050a0;
+    font-weight: bold;
+  }
+
+  .susp-btn .badge {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #00aa44;
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.3s;
+    flex-shrink: 0;
+    box-shadow: 0 0 3px #00aa44;
+  }
+  .susp-btn.has-msgs .badge { opacity: 1; }
+
+  /* ── CHAT PANEL ─────────────────── */
+  .chat-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  .chat-header {
+    padding: 0;
+    border-bottom: 1px solid #7f9db9;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #f5f4ee 0%, #dbd9cf 100%);
+    min-height: 54px;
+    position: relative;
+  }
+
+  /* MSN chat header bar — colored strip on top */
+  .chat-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #0050a0, #2880e0, #0050a0);
+  }
+
+  .chat-header-name {
+    font-family: Tahoma, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    color: #0050a0;
+    letter-spacing: 0;
+    padding: 6px 12px 2px;
+  }
+
+  /* MSN emoji/avatar before name */
+  .chat-header-name::before {
+    content: '🕵️ ';
+    font-size: 14px;
+  }
+
+  .chat-header-sep {
+    color: var(--dim2);
+    font-size: 10px;
+  }
+
+  .chat-header-status {
+    font-family: Tahoma, sans-serif;
+    font-size: 10px;
+    color: #666666;
+    letter-spacing: 0;
+    padding-top: 2px;
+    padding-left: 2px;
+  }
+
+  .chat-header-status::before {
+    content: '• ';
+    color: #dd4400;
+  }
+
+  /* ── MESSAGES ───────────────────── */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scroll-behavior: smooth;
+    background:
+      linear-gradient(180deg, #ffffff 0%, #f8f8f4 100%);
+    border-bottom: 1px solid #cccccc;
+  }
+
+  .messages::-webkit-scrollbar { width: 14px; }
+  .messages::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-left: 1px solid #cccccc;
+  }
+  .messages::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #e0e0e0, #c8c8c8);
+    border: 1px solid #ababab;
+    border-radius: 1px;
+  }
+
+  .msg {
+    max-width: 80%;
+    line-height: 1.5;
+    font-size: 12px;
+    font-family: Tahoma, sans-serif;
+    animation: fadeUp 0.15s ease;
+    border-radius: 0;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* User message — MSN "you" style */
+  .msg-user {
+    align-self: flex-end;
+    background: #ddeeff;
+    border: 1px solid #88aacc;
+    border-radius: 0;
+    padding: 5px 10px;
+    color: #1a1a1a;
+    position: relative;
+  }
+
+  .msg-user::before {
+    content: 'Detective:';
+    display: block;
+    font-weight: bold;
+    color: #0050a0;
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  /* Suspect message — MSN "them" style */
+  .msg-suspect {
+    align-self: flex-start;
+    background: #ffffff;
+    border: 1px solid #c0c8d0;
+    border-radius: 0;
+    padding: 5px 10px;
+    color: #1a1a1a;
+    font-style: normal;
+    position: relative;
+  }
+
+  .msg-suspect::before {
+    content: attr(data-name);
+    display: block;
+    font-weight: bold;
+    color: #aa2200;
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  /* System / Cassandra message */
+  .msg-cassandra {
+    align-self: center;
+    max-width: 90%;
+    border: 1px solid #cc8800;
+    padding: 5px 14px;
+    color: #884400;
+    font-size: 11px;
+    font-family: Tahoma, sans-serif;
+    letter-spacing: 0;
+    text-align: center;
+    text-transform: none;
+    border-radius: 0;
+    background: #fff8e0;
+    font-style: italic;
+  }
+
+  .msg-cassandra::before {
+    content: '⚠ CASSANDRA: ';
+    font-weight: bold;
+    font-style: normal;
+    color: #cc6600;
+  }
+
+  /* Typing indicator */
+  .msg-typing {
+    align-self: flex-start;
+    color: #6a8aaa;
+    font-family: Tahoma, sans-serif;
+    font-size: 11px;
+    font-style: italic;
+    padding: 2px 0;
+    letter-spacing: 0;
+    animation: blink 1.2s ease-in-out infinite;
+  }
+
+  .msg-typing::before {
+    content: '✍ ';
+    font-style: normal;
+  }
+
+  @keyframes blink {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.3; }
+  }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8899aa;
+    font-family: Tahoma, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0;
+    text-transform: none;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .empty-state span {
+    font-size: 32px;
+    opacity: 0.6;
+    display: block;
+  }
+
+  /* ── INPUT AREA ─────────────────── */
+  .input-area {
+    border-top: 1px solid #7f9db9;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #f5f4ee 0%, #ece9df 100%);
+    flex-shrink: 0;
+  }
+
+  /* MSN toolbar strip above input */
+  .input-area::before {
+    content: 'A  😊  🎤  📁  🎮  ☎';
+    display: block;
+    padding: 3px 10px;
+    font-size: 13px;
+    border-bottom: 1px solid #c8c4b8;
+    background: linear-gradient(180deg, #f8f7f2 0%, #eceae0 100%);
+    color: #555;
+    letter-spacing: 6px;
+  }
+
+  .input-wrap {
+    flex: 1;
+    position: relative;
+    padding: 8px 10px 8px 10px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  textarea#input {
+    flex: 1;
+    background: #ffffff;
+    border: 2px inset #cccccc;
+    border-color: #888888 #dddddd #dddddd #888888;
+    color: #1a1a1a;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 12px;
+    padding: 5px 8px;
+    resize: none;
+    min-height: 44px;
+    max-height: 100px;
+    outline: none;
+    border-radius: 0;
+    transition: none;
+    line-height: 1.4;
+    overflow-y: auto;
+  }
+
+  textarea#input::placeholder {
+    color: #aaaaaa;
+    font-style: italic;
+  }
+
+  textarea#input:focus {
+    border-color: #888888 #dddddd #dddddd #888888;
+    outline: 1px dotted #0050a0;
+    outline-offset: -2px;
+  }
+
+  /* XP-style send button */
+  .btn-send {
+    background: linear-gradient(180deg, #f0f0ea 0%, #ddddd6 45%, #c8c8c0 46%, #e0e0d8 100%);
+    color: #1a1a1a;
+    border-top: 1px solid #ffffff;
+    border-left: 1px solid #ffffff;
+    border-bottom: 1px solid #888888;
+    border-right: 1px solid #888888;
+    padding: 0 16px;
+    height: 28px;
+    font-family: Tahoma, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0;
+    cursor: pointer;
+    text-transform: none;
+    transition: none;
+    border-radius: 3px;
+    white-space: nowrap;
+    box-shadow: 1px 1px 0 rgba(0,0,0,0.15);
+    align-self: flex-end;
+    margin-bottom: 8px;
+    outline: none;
+  }
+
+  .btn-send:hover {
+    background: linear-gradient(180deg, #f8f8f2 0%, #e8e8e0 45%, #d4d4cc 46%, #eae8e0 100%);
+    color: #1a1a1a;
+    border-color: #0050a0 #0050a0 #0050a0 #0050a0;
+  }
+
+  .btn-send:active {
+    background: linear-gradient(180deg, #ddddd6 0%, #e8e8e0 100%);
+    border-top-color: #888888;
+    border-left-color: #888888;
+    border-bottom-color: #ffffff;
+    border-right-color: #ffffff;
+    transform: none;
+    padding-top: 1px;
+    padding-left: 17px;
+  }
+
+  .btn-send:disabled {
+    background: linear-gradient(180deg, #f0f0ea 0%, #ddddd6 100%);
+    color: #aaaaaa;
+    cursor: default;
+    border-color: #cccccc;
+  }
+
+  /* Status bar at bottom */
+  .input-area::after {
+    content: 'Conectado a CASSANDRA  |  Sistema de Interrogatorio v2.0';
+    display: block;
+    padding: 2px 10px;
+    font-size: 10px;
+    font-family: Tahoma, sans-serif;
+    color: #555555;
+    background: linear-gradient(180deg, #ddddd6 0%, #c8c8c0 100%);
+    border-top: 1px solid #c8c4b8;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-dot"></div>
+    <div class="topbar-title"><strong>CASSANDRA</strong> — SISTEMA DE INTERROGATORIO</div>
+  </div>
+  <div class="topbar-case">CV-2004-ESP-0918</div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-head">Interrogados</div>
+    <div class="sidebar-list">
+      <button class="susp-btn active" id="btn-Sofia"     onclick="selectSuspect('Sofia')">Sofía Cuervo<span class="badge"></span></button>
+      <button class="susp-btn"        id="btn-Valeria"   onclick="selectSuspect('Valeria')">Valeria Cruz<span class="badge"></span></button>
+      <button class="susp-btn"        id="btn-Alejandro" onclick="selectSuspect('Alejandro')">Alejandro Cuervo<span class="badge"></span></button>
+      <button class="susp-btn"        id="btn-Bruno"     onclick="selectSuspect('Bruno')">Bruno Cuervo<span class="badge"></span></button>
+      <button class="susp-btn"        id="btn-Tomas"     onclick="selectSuspect('Tomas')">Tomás Rivas<span class="badge"></span></button>
+    </div>
+  </div>
+
+  <div class="chat-panel">
+    <div class="chat-header">
+      <span class="chat-header-name" id="current-name">Sofía Cuervo</span>
+      <span class="chat-header-sep">—</span>
+      <span class="chat-header-status">EN INTERROGATORIO</span>
+    </div>
+    <div class="messages" id="messages">
+      <div class="empty-state" id="empty">
+        <span>◈</span>
+        Inicie el interrogatorio
+      </div>
+    </div>
+    <div class="input-area">
+      <div class="input-wrap">
+        <textarea id="input" placeholder="Formule su pregunta o presente una evidencia..." rows="1"></textarea>
+        <button class="btn-send" id="sendBtn" onclick="send()">Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  CONFIG — loaded from config.js
+// ═══════════════════════════════════════════════════════════
+const GEMINI_KEY    = CONFIG.GEMINI_KEY;
+const GEMINI_MODEL  = CONFIG.GEMINI_MODEL;
+const GEMINI_URL    = window.GEMINI_URL;
+
+const SUPABASE_URL  = CONFIG.SUPABASE_URL;
+const SUPABASE_KEY  = CONFIG.SUPABASE_KEY;
+// Tabla necesaria en Supabase:
+//   CREATE TABLE interrogations (
+//     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+//     session_id text, suspect text,
+//     role text, content text,
+//     created_at timestamptz DEFAULT now()
+//   );
+
+// ═══════════════════════════════════════════════════════════
+//  SUPABASE INIT
+// ═══════════════════════════════════════════════════════════
+let sb = null;
+try {
+  if (SUPABASE_URL !== "YOUR_SUPABASE_URL") {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+} catch(e) { /* sin conexión supabase */ }
+
+const SESSION_ID = crypto.randomUUID();
+
+// ═══════════════════════════════════════════════════════════
+//  ESTADO DE SOSPECHOSOS
+// ═══════════════════════════════════════════════════════════
+const suspects = {
+  Sofia: {
+    displayName: 'Sofía Cuervo',
+    history: [],       // mensajes renderizados {role, content}
+    apiHistory: [],    // solo user/model para la API
+    triggers: new Set(),
+    triggerMap: {
+      metadatos_adn:   ['metadatos', 'adn_resultado', '14 de septiembre', '10:38', 'ultimo acceso', 'archivo adn', 'resultado adn', 'informe adn', 'historial_accesos', 'historial accesos'],
+      recibo_farmacia: ['recibo', 'farmacia', 'digitalis', 'digital purpurea', 'farmacia central', 'digital purpurea 30ch'],
+      ampolla:         ['ampolla', 'ampolla de vidrio', 'frasco', 'veneno jarra', 'veneno botella', 'puso algo']
+    }
+  },
+  Valeria: {
+    displayName: 'Valeria Cruz',
+    history: [], apiHistory: [], triggers: new Set(),
+    triggerMap: {
+      foto_pasillo:   ['foto del pasillo', 'foto pasillo', 'fotografia pasillo', 'imagen pasillo', 'la vio en el pasillo', 'pasillo noche'],
+      rodrigo_penas:  ['rodrigo', 'rodrigo penas', 'rodrigo peñas', 'enologo', 'rodrigo 1988'],
+      fecha_sofia:    ['fecha de nacimiento de sofia', 'nacimiento sofia', 'padre biologico sofia', 'padre de sofia', '1988 sofia', 'aventura valeria']
+    }
+  },
+  Alejandro: {
+    displayName: 'Alejandro Cuervo',
+    history: [], apiHistory: [], triggers: new Set(),
+    triggerMap: {
+      sms_nokia:       ['sms', 'nokia', 'esta noche todo cambia', 'mensaje de tomas', 'mensaje texto tomas', 'texto tomas'],
+      botella_sofia:   ['sofia junto a la botella', 'sofia cerca de la jarra', 'sofia y la botella', 'vio a sofia', 'sofia en la botella'],
+      herencia_sofia:  ['sofia perderia la herencia', 'sofia sin herencia', 'sofia quedaria sin nada', 'sofia excluida', 'sofia perder todo', 'sofia no heredaria']
+    }
+  },
+  Bruno: {
+    displayName: 'Bruno Cuervo',
+    history: [], apiHistory: [], triggers: new Set(),
+    triggerMap: {
+      recibo_farmacia: ['recibo en el coche', 'recibo guantera', 'farmacia recibo', 'coche recibo', 'guantera', 'recibo digitalis'],
+      escaleras:       ['escaleras', '19:40', 'vio en las escaleras', 'escalera', 'cerca de las escaleras'],
+      elena_testigo:   ['elena', 'elena vio', 'elena como testigo', 'elena testigo', 'lo que vio elena', 'elena estuvo']
+    }
+  },
+  Tomas: {
+    displayName: 'Tomás Rivas',
+    history: [], apiHistory: [], triggers: new Set(),
+    triggerMap: {
+      alejandro_inocente: ['alejandro es inocente', 'alejandro no culpable', 'alejandro descartado', 'alejandro confirmado', 'alejandro limpio'],
+      sms_nokia:          ['sms', 'nokia', 'esta noche todo cambia', 'mensaje nokia', 'texto alejandro', 'mensaje alejandro']
+    }
+  }
+};
+
+let currentSuspect = 'Sofia';
+
+// ═══════════════════════════════════════════════════════════
+//  SYSTEM PROMPTS
+// ═══════════════════════════════════════════════════════════
+function getSystemPrompt(key) {
+  const s = suspects[key];
+  const level = Math.min(s.triggers.size + 1, 4);
+
+  const chars = {
+    Sofia: {
+      rol: "Sofía Cuervo Cruz, 28 años. Cálida, condescendiente, calma absoluta.",
+      niveles: [
+        "Colaboradora y casi divertida. Sin nerviosismo. Confías en que no tienen nada.",
+        "Ligeramente incómoda. Admites que tenías acceso al estudio, sin más detalle.",
+        "Reencuadras. La digital es medicinal. Insinúas que Bruno tenía más motivos.",
+        "Grieta emocional. 'Él iba a borrarnos. ¿Qué familia es esa?' Sin confesar el acto."
+      ]
+    },
+    Valeria: {
+      rol: "Valeria Cruz de Cuervo, 54 años. Fría, elegante, viuda. Pausas largas.",
+      niveles: [
+        "Breve, educada, evasiva. No das nada voluntariamente.",
+        "Más tensa. Respuestas más cortas. Algo te incomoda.",
+        "Admites que sabías que Sofía estaba perturbada. 'Pero no pensé que llegaría tan lejos.'",
+        "Confirmas que esa noche Alonso tuvo palpitaciones y no llamaste al médico."
+      ]
+    },
+    Alejandro: {
+      rol: "Alejandro Cuervo Cruz, 32 años. Hijo mayor. Formal, rígido, respuestas cortas.",
+      niveles: [
+        "Respuestas breves y precisas. Nada más de lo necesario.",
+        "Proteges a Tomás instintivamente cuando lo mencionan.",
+        "Respondes antes de pensar y te corriges. Algo se escapa.",
+        "Confiesas tu relación con Tomás. Señalas indirectamente a Sofía."
+      ]
+    },
+    Bruno: {
+      rol: "Bruno Cuervo Cruz, 30 años. Hijo mediano. Defensivo, interrumpe, humor negro. Inocente.",
+      niveles: [
+        "Agresivo. Niegas todo desde el principio.",
+        "Pánico al mencionar el recibo. Crees que te van a culpar.",
+        "Alivio cuando queda claro que el recibo es de Sofía. Empiezas a cooperar.",
+        "Confiesas tus deudas. Señalas las escaleras."
+      ]
+    },
+    Tomas: {
+      rol: "Tomás Rivas, 38 años. Capataz. Humillado pero digno. Habla despacio.",
+      niveles: [
+        "Solo hechos. Mínimas palabras. Nada personal.",
+        "Proteges a Alejandro. Desvías las preguntas.",
+        "Admites que esperaste en el coche fuera de la finca hasta medianoche.",
+        "Confirmas la relación con Alejandro. Describes la amenaza de Don Alonso."
+      ]
+    }
+  };
+
+  const c = chars[key];
+  const comportamiento = c.niveles[level - 1];
+
+  return `Eres ${c.rol}
+Ahora mismo: ${comportamiento}
+Estás siendo interrogado por la muerte de Don Alonso.
+
+Responde SOLO con lo que tu personaje diría en voz alta. Una frase directa, sin razonamiento previo, sin opciones, sin etiquetas. Máximo 55 palabras. Español.`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DETECCIÓN DE ACUSACIÓN DIRECTA
+// ═══════════════════════════════════════════════════════════
+function isAccusation(text) {
+  const patterns = [
+    'eres el asesino','eres la asesina','eres el culpable','eres la culpable',
+    'fuiste tu','fuiste tú','tu lo hiciste','tú lo hiciste','te acuso',
+    'lo hiciste tu','lo hiciste tú','eres culpable','confiesa que lo hiciste',
+    'sabemos que fuiste','eres el responsable','eres la responsable',
+    'tu mataste','tú mataste','tu envenenaste','tú envenenaste',
+    'eres el asesino/a','yo te acuso de','te acusamos de'
+  ];
+  const t = normalize(text);
+  return patterns.some(p => t.includes(normalize(p)));
+}
+
+function normalize(str) {
+  return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DETECCIÓN DE EVIDENCIAS
+// ═══════════════════════════════════════════════════════════
+function detectTriggers(text, key) {
+  const s = suspects[key];
+  const t = normalize(text);
+  let changed = false;
+  for (const [trigger, keywords] of Object.entries(s.triggerMap)) {
+    if (!s.triggers.has(trigger)) {
+      for (const kw of keywords) {
+        if (t.includes(normalize(kw))) {
+          s.triggers.add(trigger);
+          changed = true;
+          break;
+        }
+      }
+    }
+  }
+  return changed;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SUPABASE
+// ═══════════════════════════════════════════════════════════
+async function saveMessage(suspect, role, content) {
+  if (!sb) return;
+  try {
+    await sb.from('interrogations').insert({ session_id: SESSION_ID, suspect, role, content });
+  } catch(e) { /* silent */ }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI
+// ═══════════════════════════════════════════════════════════
+function selectSuspect(key) {
+  currentSuspect = key;
+  document.querySelectorAll('.susp-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + key).classList.add('active');
+  document.getElementById('current-name').textContent = suspects[key].displayName;
+  renderMessages(key);
+}
+
+function renderMessages(key) {
+  const container = document.getElementById('messages');
+  const history   = suspects[key].history;
+  container.innerHTML = '';
+
+  if (history.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.id = 'empty';
+    empty.innerHTML = '<span>◈</span>Inicie el interrogatorio';
+    container.appendChild(empty);
+    return;
+  }
+
+  history.forEach(m => appendMessage(m.role, m.content, false));
+  container.scrollTop = container.scrollHeight;
+}
+
+function appendMessage(role, content, scroll = true) {
+  const container = document.getElementById('messages');
+  const empty = document.getElementById('empty');
+  if (empty) empty.remove();
+
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + role;
+
+  // Para mensajes de sospechoso, guardar el nombre como atributo para el ::before
+  if (role === 'suspect') {
+    const name = suspects[currentSuspect].displayName.split(' ')[0] + ':';
+    div.setAttribute('data-name', name);
+  }
+
+  div.textContent = content;
+  container.appendChild(div);
+  if (scroll) container.scrollTop = container.scrollHeight;
+}
+
+function showTyping() {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg-typing';
+  div.id = 'typing-indicator';
+  div.textContent = suspects[currentSuspect].displayName.split(' ')[0].toLowerCase() + ' está escribiendo...';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+function setDisabled(state) {
+  document.getElementById('sendBtn').disabled = state;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SEND
+// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+//  EXTRACCIÓN DE DIÁLOGO LIMPIO
+// ═══════════════════════════════════════════════════════════
+function extractDialogue(raw) {
+  // 1. Último bloque entre comillas (rectas o tipográficas), mínimo 10 chars
+  const qRe = /[\u201c\u00ab"']([^\u201d\u00bb"']{10,})[\u201d\u00bb"']/g;
+  const qMatches = [...raw.matchAll(qRe)];
+  if (qMatches.length > 0) return qMatches[qMatches.length - 1][1].trim();
+
+  // 2. Texto tras el último marcador tipo "Draft 2:", "Option 3 (Perfect):"
+  const draftRe = /(?:Draft\s*\d+\s*:|Option\s*\d+\s*(?:\([^)]*\)\s*)?:)\s*(.+?)(?:\s*\(|$)/is;
+  const dm = raw.match(draftRe);
+  if (dm && dm[1].trim().length > 8) return dm[1].trim();
+
+  // 3. Filtrado línea a línea
+  const metaRe = /^(Character|Personality|Goal|Constraints|Level|Note|Thinking|Draft|Option|Warm|Yes|No|Tone|Tono|Fitting|Simple|Perfect|Spanish|Castilian|\*)/i;
+  const parenRe = /^\(.*\)$/;
+  const lines = raw
+    .split(/\n/)
+    .map(l => l.replace(/\*[^*]*\*/g, '').replace(/^[-\u2022*\d.)\s]+/, '').trim())
+    .filter(l => l.length > 8 && !metaRe.test(l) && !parenRe.test(l));
+  if (lines.length > 0) return lines[lines.length - 1];
+
+  return raw.slice(0, 220).trim();
+}
+
+async function send() {
+  const input = document.getElementById('input');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+
+  // — Acusación directa
+  if (isAccusation(text)) {
+    suspects[currentSuspect].history.push({ role: 'user', content: text });
+    appendMessage('user', text);
+    const cassMsg = 'CASSANDRA — Este software no está programado para acusar directamente. Presente evidencias y formule preguntas al interrogado.';
+    suspects[currentSuspect].history.push({ role: 'cassandra', content: cassMsg });
+    appendMessage('cassandra', cassMsg);
+    await saveMessage(currentSuspect, 'user', text);
+    return;
+  }
+
+  // — Detectar evidencias (actualiza nivel)
+  detectTriggers(text, currentSuspect);
+
+  // — Añadir mensaje usuario al historial
+  suspects[currentSuspect].history.push({ role: 'user', content: text });
+  suspects[currentSuspect].apiHistory.push({ role: 'user', parts: [{ text }] });
+  appendMessage('user', text);
+  await saveMessage(currentSuspect, 'user', text);
+
+  setDisabled(true);
+  showTyping();
+
+  // — Construir payload para la API
+  const apiMessages = suspects[currentSuspect].apiHistory;
+
+  const payload = {
+    system_instruction: {
+      parts: [{ text: getSystemPrompt(currentSuspect) }]
+    },
+    contents: apiMessages,
+    generationConfig: {
+      temperature: 0.82,
+      maxOutputTokens: 180,
+      topP: 0.95,
+      thinkingConfig: { thinkingLevel: "MINIMAL" }
+    }
+  };
+
+  try {
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data  = await res.json();
+    // Gemma 4 devuelve varios parts: algunos con thought:true (razonamiento interno)
+    // Solo usamos los parts sin thought, que contienen el diálogo real
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const raw = parts
+      .filter(p => !p.thought)
+      .map(p => p.text || '')
+      .join(' ')
+      .trim() || '...';
+    const reply = extractDialogue(raw);
+
+    // Guardar respuesta del modelo en historial API
+    suspects[currentSuspect].apiHistory.push({ role: 'model', parts: [{ text: reply }] });
+    suspects[currentSuspect].history.push({ role: 'suspect', content: reply });
+
+    removeTyping();
+    appendMessage('suspect', reply);
+    await saveMessage(currentSuspect, 'suspect', reply);
+
+    // Marcar badge de actividad
+    const btn = document.getElementById('btn-' + currentSuspect);
+    if (btn) btn.classList.add('has-msgs');
+
+  } catch(e) {
+    removeTyping();
+    const errMsg = `CASSANDRA — ERROR DE CONEXIÓN: ${e.message}`;
+    suspects[currentSuspect].history.push({ role: 'cassandra', content: errMsg });
+    appendMessage('cassandra', errMsg);
+  } finally {
+    setDisabled(false);
+    input.focus();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AUTO-RESIZE TEXTAREA + ENTER
+// ═══════════════════════════════════════════════════════════
+const ta = document.getElementById('input');
+ta.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+ta.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+</script>
+</body>
+</html>

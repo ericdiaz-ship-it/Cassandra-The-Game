@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Visor de documento</title>
+  <style>
+    *{box-sizing:border-box}
+    body,html{height:100%;margin:0;font-family:Tahoma,Arial,sans-serif;background:#111}
+    .titlebar{background:linear-gradient(180deg,#4d8de8 0%,#1248b8 100%);color:#fff;padding:6px 10px;display:flex;align-items:center;justify-content:space-between}
+    .titlebar .title{font-weight:bold}
+    .titlebar button{background:linear-gradient(180deg,#e87070,#c84040);border:1px solid #a82020;color:#fff;padding:3px 8px;border-radius:4px;cursor:pointer}
+    .viewer{height:calc(100vh - 46px);background:#333}
+    .viewer iframe{width:100%;height:100%;border:none;background:#fff}
+    .note{color:#ddd;padding:10px;font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="titlebar">
+    <div class="title">Visor de documento</div>
+    <div><button onclick="window.close()">✕</button></div>
+  </div>
+  <div class="viewer">
+    <iframe id="docframe" src="about:blank"></iframe>
+  </div>
+
+  <script>
+    function getParam(name){
+      const params = new URLSearchParams(location.search);
+      return params.get(name);
+    }
+    const file = getParam('file');
+    if(file){
+      // Try to load the file relative to the current folder.
+      const decoded = decodeURIComponent(file);
+      // If it's a PDF or common web-readable file, show inline; otherwise attempt to download/open.
+      document.getElementById('docframe').src = decoded;
+    }
+  </script>
+</body>
+</html>

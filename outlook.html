@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Bandeja de entrada - Outlook Express</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: 'Tahoma', sans-serif;
+            background-color: #ECE9D8;
+            overflow: hidden;
+        }
+
+        /* --- ESTRUCTURA PRINCIPAL --- */
+        .outlook-container {
+            display: flex; flex-direction: column; height: 100vh;
+            border: 2px solid #0058EE;
+        }
+
+        /* Barra de Herramientas Superior */
+        .toolbar {
+            background: #F1F0E7; padding: 5px;
+            display: flex; gap: 10px; border-bottom: 1px solid #919B9C;
+        }
+        .tool-btn {
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 11px; padding: 5px 10px; cursor: pointer;
+        }
+        .tool-btn:hover { background: #E5E2D1; border: 1px solid #919B9C; border-radius: 3px; }
+
+        /* Cuerpo del programa */
+        .main-view { display: flex; flex: 1; overflow: hidden; }
+
+        /* Panel Lateral (Carpetas) */
+        .folder-pane {
+            width: 200px; background: #FFF; border-right: 1px solid #919B9C;
+            font-size: 12px; padding: 10px;
+        }
+        .folder-item { padding: 3px 5px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .folder-item.selected { background: #316AC5; color: #FFF; }
+        .folder-item:hover:not(.selected) { background: #E5E2D1; }
+
+        /* Lado Derecho: Lista y Contenido */
+        .content-pane { display: flex; flex-direction: column; flex: 1; }
+
+        /* Lista de Mensajes */
+        .message-list {
+            height: 35%; background: #FFF; border-bottom: 2px solid #919B9C;
+            overflow-y: scroll; font-size: 11px;
+        }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { 
+            background: #ECE9D8; position: sticky; top: 0; 
+            border: 1px solid #919B9C; padding: 3px; text-align: left; font-weight: normal;
+        }
+        td { padding: 4px; border-bottom: 1px dotted #CCC; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        tr.selected { background: #316AC5; color: #FFF !important; }
+        tr.unread { font-weight: bold; }
+
+        /* Previsualización del Mensaje */
+        .message-view {
+            flex: 1; background: #FFF; padding: 15px; overflow-y: auto;
+            border-top: 1px solid #919B9C;
+        }
+        .msg-header { background: #F1F0E7; padding: 10px; border: 1px solid #919B9C; margin-bottom: 15px; font-size: 12px; }
+        .msg-header div { margin-bottom: 4px; }
+        .msg-body { font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.4; white-space: pre-wrap; color: #000; }
+        
+        .label { font-weight: bold; color: #666; width: 60px; display: inline-block; }
+    </style>
+</head>
+<body>
+
+<div class="outlook-container">
+    <div class="toolbar">
+        <div class="tool-btn"><span>📧</span><span>Crear correo</span></div>
+        <div class="tool-btn"><span>📥</span><span>Recibir</span></div>
+        <div class="tool-btn"><span>📁</span><span>Carpetas</span></div>
+        <div class="tool-btn"><span>🖨️</span><span>Imprimir</span></div>
+    </div>
+
+    <div class="main-view">
+        <div class="folder-pane">
+            <strong>Outlook Express</strong>
+            <div class="folder-item">📂 Carpetas locales</div>
+            <div class="folder-item selected" id="folder-inbox" onclick="renderList('inbox')">  📥 Bandeja de entrada</div>
+            <div class="folder-item">  📤 Bandeja de salida</div>
+            <div class="folder-item">  📝 Elementos enviados</div>
+            <div class="folder-item">  🗑️ Elementos eliminados</div>
+            <div class="folder-item" id="folder-drafts" onclick="renderList('drafts')">  📄 Borradores</div>
+        </div>
+
+        <div class="content-pane">
+            <div class="message-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 20px;">!</th>
+                            <th style="width: 30%;">De</th>
+                            <th style="width: 45%;">Asunto</th>
+                            <th style="width: 25%;">Recibido</th>
+                        </tr>
+                    </thead>
+                    <tbody id="msg-list-body">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="message-view" id="message-display">
+                <div id="welcome-msg" style="text-align: center; color: #999; margin-top: 50px;">
+                    Seleccione un mensaje para verlo.
+                </div>
+                <div id="msg-content" style="display:none;">
+                    <div class="msg-header">
+                        <div><span class="label">De:</span> <span id="view-from"></span></div>
+                        <div><span class="label">Para:</span> <span id="view-to"></span></div>
+                        <div><span class="label">Fecha:</span> <span id="view-date"></span></div>
+                        <div><span class="label">Asunto:</span> <span id="view-subject"></span></div>
+                    </div>
+                    <div class="msg-body" id="view-body"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const emails = [
+        {
+            from: "alejandro.cuervo@vinedoscuervo.es",
+            to: "sofia.cuervo@vinedoscuervo.es",
+            date: "Lunes, 30 de agosto de 2004, 16:03",
+            subject: "Re: Re: Re: Re: El asunto del Valle",
+            body: `Sofía.
+
+Llámame esta noche. Por favor.
+
+Alejandro
+
+--- Mensaje Anterior ---
+De: sofia.cuervo@vinedoscuervo.es
+Para: alejandro.cuervo@vinedoscuervo.es
+Fecha: Lunes, 30 de agosto de 2004, 11:52
+Asunto: Re: Re: Re: El asunto del Valle
+
+Alejandro,
+Tú siempre defendiéndolo. Siempre. Pasa lo que pase, siempre hay una razón lógica, siempre hay una explicación razonable. Me pregunto si alguna vez te ha parecido que algo que hace papá no tiene sentido.
+No te estoy hablando solo de la dirección comercial. Te estoy hablando de una forma de gestionar esta familia en la que determinadas personas siempre están en el centro y otras siempre en el margen. ¿Lo ves? ¿O también eso tiene una explicación razonable?
+Y otra cosa, Alejandro: hay cosas de esta familia que no sabes. Cosas que cambiarían tu opinión sobre muchos de nosotros. Sobre mí. Sobre él. No lo digo para asustarte — lo digo porque a veces pienso que los tres vivimos en versiones muy distintas de la misma historia.
+Guárdate tus consejos para cuando los necesite.
+Sofía
+P.D.: Me alegra que la presentación le gustara. Aunque hubiera agradecido que me lo dijera él directamente.
+
+--- Mensaje Anterior ---
+De: alejandro.cuervo@vinedoscuervo.es
+Para: sofia.cuervo@vinedoscuervo.es
+Fecha: Lunes, 30 de agosto de 2004, 09:14
+Asunto: Re: Re: El asunto del Valle
+
+Sofía,
+No exageres. Papá siempre ha hecho lo que ha querido con los viñedos, eso no es nada nuevo. Si quiere contratar a alguien nuevo para la dirección comercial es su decisión y, francamente, creo que tiene sentido. Llevamos tres vendimias sin un jefe de ventas a tiempo completo desde que se fue Marcos.
+No todo es una amenaza contra ti. A veces papá toma decisiones operativas que son exactamente eso: operativas. Sin ningún mensaje implícito detrás.
+Dicho esto: entiendo que te moleste que no te lo haya consultado primero. Tienes razón en eso. Pero la forma de enfrentarlo no es montar un drama, sino hablar con él directamente. ¿Has intentado hacerlo?
+Por otro lado, vi tu presentación del Cuervo Blanco para la feria de Valladolid. Está bien hecha. Papá también la vio — no lo dijo, pero le gustó. Ya sabes cómo es.
+Hablamos este fin de semana si bajas a la finca.
+Alejandro`
+        },
+        {
+            from: "sofia.cuervo@vinedoscuervo.es",
+            to: "valeria.cuervo@vinedoscuervo.es",
+            date: "Viernes, 10 de septiembre de 2004, 09:22",
+            subject: "Re: Re: Re: Visita al médico",
+            body: `Mamá,
+Ya lo tengo. Te lo daré cuando te vea. Es la presentación de 30CH, que es la más suave y la más adecuada para lo que describes.
+No se lo menciones a nadie. Ya sabes cómo se pone papá cuando se entera de que has ido al médico o de que tomas algo.
+Nos vemos el sábado.
+Sofía
+
+--- Mensaje Anterior ---
+De: valeria.cuervo@vinedoscuervo.es
+Para: sofia.cuervo@vinedoscuervo.es
+Fecha: Jueves, 9 de septiembre de 2004, 12:10
+Asunto: Re: Re: Visita al médico
+
+Sofía,
+No busques nada. Estoy bien. El doctor sabe lo que dice y yo lo conozco desde hace treinta años.
+Concéntrate en el trabajo. Tienes cosas más importantes que atender.
+Mamá
+
+--- Mensaje Anterior ---
+De: sofia.cuervo@vinedoscuervo.es
+Para: valeria.cuervo@vinedoscuervo.es
+Fecha: Jueves, 9 de septiembre de 2004, 08:45
+Asunto: Re: Visita al médico
+
+Mamá,
+Los médicos de pueblo no tienen los medios para diagnosticar correctamente problemas cardíacos de base. Un electrocardiograma de reposo no descarta nada importante — para eso hace falta un Holter de 24 horas o una prueba de esfuerzo. El Doctor Herrera es un buen hombre pero lleva veinte años en el pueblo y su aparatología no se actualiza desde 2001.
+He estado leyendo sobre arritmias benignas y sobre plantas medicinales con propiedades reguladoras del ritmo cardíaco. La Digitalis purpurea en dilución homeopática tiene un historial muy bien documentado como regulador suave. No es medicación química — es fitoterapia. Completamente seguro.
+Ya busco yo lo que necesitas. No te preocupes por eso.
+Sofía
+P.D.: No hace falta que se lo digas a papá. Ya sabes que se preocupa más de la cuenta con estas cosas.
+
+--- Mensaje Anterior ---
+De: valeria.cuervo@vinedoscuervo.es
+Para: sofia.cuervo@vinedoscuervo.es
+Fecha: Miércoles, 8 de septiembre de 2004, 18:30
+Asunto: Visita al médico
+
+Sofía,
+Acabo de llegar de la consulta del Doctor Herrera. Como ya te dije por teléfono, dice que mis palpitaciones son de origen nervioso. No tiene nada que ver con el corazón — lo ha descartado con el electrocardiograma. Me mandó hacer reposo y evitar el estrés.
+No necesito medicación adicional. Tengo el Orfidal que me recetó el año pasado para cuando lo necesite, y de momento no lo he tenido que usar más de una vez esta semana.
+Gracias por preocuparte, pero de verdad que no hace falta que hagas nada. Ya sabes que soy una exagerada con estas cosas.
+Nos vemos el sábado si venís a la finca.
+Mamá`
+        },
+        {
+            from: "alejandro.cuervo@vinedoscuervo.es",
+            to: "bruno.cuervo@hotmail.com",
+            date: "Martes, 14 de septiembre de 2004, 23:55",
+            subject: "Re: Mateo",
+            body: `Bruno,
+Sí lo sabía. Desde hace dos semanas. Papá me lo dijo cuando volví de Burdeos, en una de esas conversaciones en el despacho que siempre empiezan con 'tengo que contarte algo' y acaban con 'pero no se lo digas a nadie todavía'.
+No te lo dije porque sabía exactamente cómo ibas a reaccionar. Y porque quería que papá tuviera la oportunidad de contárnoslo él, en sus propios términos. Me pidió que esperara hasta que tuviera todo en orden.
+Escucha: hay que hablar con él con cabeza fría. Esto tiene implicaciones para la empresa, para el testamento, para todo. Pero no vamos a resolver nada gritando.
+La semana que viene nos sentamos los tres. Antes de la cena del sábado, si puede ser.
+Y Bruno: no se lo digas a Sofía todavía. No porque no tenga derecho a saberlo — sino porque necesito que hablemos los dos primero.
+Alejandro
+
+--- Mensaje Anterior ---
+De: bruno.cuervo@hotmail.com
+Para: alejandro.cuervo@vinedoscuervo.es
+Fecha: Martes, 14 de septiembre de 2004, 21:40
+Asunto: Mateo
+
+Alejandro,
+¿Tú sabías lo de Mateo?
+Porque yo me enteré hoy, por casualidad, escuchando una llamada de papá desde el pasillo de la finca. No estaba espiando — es que se le fue la voz y oí su nombre. Mateo Villanueva. Luego busqué en internet y encontré el artículo del periódico del pueblo.
+Tiene un hijo. Fuera de esta familia. Con una mujer del pueblo. Y piensa traerlo. A la finca. A nuestra casa. A nuestro negocio.
+No me creo que no supieras nada. Alejandro, llevas todo el verano raro. No me hagas creer que estabas tan a oscuras como yo.
+Llámame. Esta noche.
+Bruno`
+        },
+        {
+            from: "alejandro.cuervo@vinedoscuervo.es",
+            to: "esteban.morales@vinedoscuervo.es",
+            date: "Lunes, 6 de septiembre de 2004, 17:45",
+            subject: "Re: Re: Sobre el acuerdo con Distribuciones Lerma — URGENTE",
+            body: `Esteban,
+Gracias. No se preocupe — no se ha extralimitado.
+Sobre Mateo Villanueva: sí, estoy al tanto. Es un asunto familiar que papá está gestionando. No es necesario que lo comente con nadie más.
+Sobre Lerma: hablaré directamente con papá esta semana. Si le pregunta, dígale que le pedí el contrato para la reunión del día 20. Eso es suficiente.
+Alejandro
+
+--- Mensaje Anterior ---
+De: esteban.morales@vinedoscuervo.es
+Para: alejandro.cuervo@vinedoscuervo.es
+Fecha: Lunes, 6 de septiembre de 2004, 14:32
+Asunto: Re: Sobre el acuerdo con Distribuciones Lerma — URGENTE
+
+Don Alejandro,
+He buscado en el archivo de la oficina y los documentos del contrato con Lerma no están aquí. Los tiene el señor en su despacho, en la carpeta azul grande que guarda bajo llave en el cajón inferior derecho. Solo él tiene la llave.
+Lo que sí puedo decirle es que la firma se hizo el 12 de julio, un martes, mientras usted estaba en Burdeos. Vinieron dos señores de Lerma — el señor Carlos Lerma y otro que no conocí — y estuvieron con el señor más de dos horas. Después se fueron sin comer.
+El señor estuvo muy callado esa tarde. Mandé al chico a por el correo y cuando volvió el señor estaba en el jardín fumando, cosa que no hace desde hace dos años.
+Una cosa más, don Alejandro, y discúlpeme si me extralimito: el señor también tuvo una reunión en agosto con el señor Mateo Villanueva, en el despacho. Me lo dijo él mismo cuando llegó desde Salamanca, para que yo no me asustara al verle. Dijo que era 'una visita familiar'. No sé si usted estaba al tanto.
+Quedo a su disposición para cualquier otra cosa.
+Esteban Morales
+
+--- Mensaje Anterior ---
+De: alejandro.cuervo@vinedoscuervo.es
+Para: esteban.morales@vinedoscuervo.es
+Fecha: Lunes, 6 de septiembre de 2004, 10:15
+Asunto: Sobre el acuerdo con Distribuciones Lerma — URGENTE
+
+Esteban,
+Necesito que me localices los archivos del contrato firmado con Distribuciones Lerma S.A. en julio de este año. Papá me mencionó que había renovado el acuerdo, pero yo no tengo copia en mi despacho y en el sistema de la empresa tampoco aparece nada.
+Específicamente necesito ver: (1) las condiciones de comisión acordadas, (2) si hay cláusula de exclusividad y qué mercados cubre, y (3) si hay alguna disposición especial sobre la gestión del contrato en caso de cambio en la dirección de la empresa.
+Si el contrato está en el despacho de papá, bajo llave, necesito que hables con él y le pidas que me lo haga llegar. Dile que lo necesito para preparar la reunión con el nuevo equipo de ventas.
+Además: ¿sabes si papá convocó reuniones con alguien más aparte de mí sobre la reestructuración comercial? Hay algunos números del primer semestre que no cuadran y necesito entender el contexto.
+Gracias.
+Alejandro Cuervo Cruz`
+        },
+        {
+            from: "carmen.rodriguez@correo.es",
+            to: "valeria.cuervo@vinedoscuervo.es",
+            date: "Miércoles, 8 de septiembre de 2004, 10:22",
+            subject: "Re: Re: ¿Cómo estás?",
+            body: `Valeria,
+Qué bien oírte aunque sea por escrito. Tienes razón — deberíamos vernos más.
+Lo que dices de las semillas me suena muy críptico, amiga. Cuando puedas contarme, cuéntame. Ya sabes que aquí estoy.
+Lucía aprobó la oposición. Notaría en Salamanca, curiosamente. Así que si necesitáis algo por allá, ya tenéis enchufe.
+Un abrazo,
+Carmen
+
+--- Mensaje Anterior ---
+De: valeria.cuervo@vinedoscuervo.es
+Para: carmen.rodriguez@correo.es
+Fecha: Martes, 7 de septiembre de 2004, 21:45
+Asunto: Re: ¿Cómo estás?
+
+Carmen,
+Gracias por preguntar. Estoy como siempre: adaptándome.
+Tienes razón en que hace tiempo que no nos vemos. Este verano ha sido raro — mucho calor y mucho silencio al mismo tiempo, que es una combinación que a mí siempre me pone nerviosa. Cuando todo está demasiado quieto en esta casa es porque algo está a punto de cambiar.
+Hay cosas que están pasando en esta familia que no puedo contarte todavía. No es que no quiera — es que hay cosas que necesitan madurar antes de salir al aire. Cuando pueda hablarlo, te llamo. Lo que sí te digo es que a veces uno planta semillas hace mucho tiempo y luego tiene que vivir con lo que crece. Eso es lo que pienso estos días cuando bajo al jardín por las mañanas.
+A Sofía la veo muy seria estos días. Más de lo normal. Siempre ha sido la más intensa de los tres, la que siente las cosas con más fuerza — aunque tenga tanta mano para disimularlo. Tiene esa mirada que pone cuando ha tomado una decisión y está esperando el momento. La conozco bien.
+A Alonso... Alonso también está diferente. Más blando, si puedo decirlo así. Como alguien que ha resuelto algo que llevaba mucho tiempo sin resolver y que ahora solo tiene que esperar a que llegue el momento de decirlo. Ojalá sea bueno lo que venga. Eso espero.
+Los chicos bien, en general. Alejandro siempre trabajando. Bruno en Madrid, como siempre.
+Escríbeme pronto.
+Valeria
+P.D.: ¿Cómo le fue a tu hija con lo de la oposición? Espero que bien.`
+        },
+        {
+            from: "valeria.cuervo@vinedoscuervo.es",
+            to: "carmen.rodriguez@correo.es",
+            date: "Martes, 7 de septiembre de 2004, 21:45",
+            subject: "Re: ¿Cómo estás?",
+            body: `Carmen, gracias por preguntar. Estoy como siempre: adaptándome.
+Hay cosas que están pasando en esta familia que no puedo contarte todavía. Cuando pueda hablarlo, te llamo. Lo que sí te digo es que a veces uno planta semillas hace mucho tiempo y luego tiene que vivir con lo que crece.
+A Sofía la veo muy seria estos días. Más de lo normal. No sé si es el trabajo o algo más. Tiene esa mirada que pone cuando ha tomado una decisión.
+A Alonso... Alonso también está diferente. Más blando, si puedo decirlo así. Como alguien que ha resuelto algo que llevaba mucho tiempo sin resolver. Ojalá sea bueno.`
+        }
+    ];
+
+    const drafts = [
+        {
+            from: "sofia.cuervo@vinedoscuervo.es",
+            to: "[sin destinatario]",
+            date: "Miércoles, 15 de septiembre de 2004, 03:12",
+            subject: "[sin asunto]",
+            body: "Si me quitan lo que es mío, no quedarán viñedos ni herederos."
+        }
+    ];
+
+    const listBody = document.getElementById('msg-list-body');
+    const msgContent = document.getElementById('msg-content');
+    const welcomeMsg = document.getElementById('welcome-msg');
+
+    function renderList(folder) {
+        // UI de carpetas
+        document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('selected'));
+        if(folder === 'inbox') document.getElementById('folder-inbox').classList.add('selected');
+        if(folder === 'drafts') document.getElementById('folder-drafts').classList.add('selected');
+
+        // Limpiar lista y vista
+        listBody.innerHTML = '';
+        welcomeMsg.style.display = 'block';
+        msgContent.style.display = 'none';
+
+        const data = (folder === 'inbox') ? emails : drafts;
+
+        data.forEach((email, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td></td>
+                <td>${email.from}</td>
+                <td>${email.subject}</td>
+                <td>${email.date.split(',')[1] || email.date}</td>
+            `;
+            tr.onclick = () => selectEmail(index, tr, data);
+            listBody.appendChild(tr);
+        });
+    }
+
+    function selectEmail(index, element, dataSource) {
+        document.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+        element.classList.add('selected');
+        
+        const mail = dataSource[index];
+        welcomeMsg.style.display = 'none';
+        msgContent.style.display = 'block';
+        
+        document.getElementById('view-from').innerText = mail.from;
+        document.getElementById('view-to').innerText = mail.to;
+        document.getElementById('view-date').innerText = mail.date;
+        document.getElementById('view-subject').innerText = mail.subject;
+        document.getElementById('view-body').innerText = mail.body;
+    }
+
+    // Inicializar
+    window.onload = () => renderList('inbox');
+</script>
+
+</body>
+</html>

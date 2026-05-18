@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MSN Messenger - Historial de Conversaciones</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: 'Tahoma', sans-serif;
+            background-color: #ECE9D8;
+            overflow: hidden;
+        }
+
+        /* --- VENTANA PRINCIPAL MSN --- */
+        .msn-container {
+            display: flex; height: 100vh;
+            border: 2px solid #0058EE;
+        }
+
+        /* Panel Lateral (Lista de Contactos / Chats) */
+        .contact-list {
+            width: 250px; background: #FFF;
+            border-right: 1px solid #919B9C;
+            display: flex; flex-direction: column;
+        }
+
+        .user-info {
+            background: linear-gradient(to bottom, #76A5EF, #245EDB);
+            padding: 10px; color: white; display: flex; align-items: center; gap: 10px;
+        }
+        .user-info img { width: 40px; height: 40px; border: 2px solid white; border-radius: 3px; }
+
+        .search-contacts { padding: 5px; background: #ECE9D8; border-bottom: 1px solid #CCC; }
+        .search-contacts input { width: 90%; font-size: 11px; }
+
+        .groups-container { flex: 1; overflow-y: auto; padding: 5px; }
+        .group-header { font-size: 11px; font-weight: bold; color: #316AC5; margin: 10px 0 5px 0; }
+        .contact-item { 
+            padding: 4px 10px; font-size: 12px; cursor: pointer; 
+            display: flex; align-items: center; gap: 8px;
+        }
+        .contact-item:hover { background: #E5E2D1; }
+        .contact-item.active { background: #316AC5; color: white; }
+        .status-icon { width: 12px; height: 12px; border-radius: 50%; background: #919B9C; }
+        .status-online { background: #56D628; border: 1px solid #3B8821; }
+
+        /* Área de Chat */
+        .chat-pane { flex: 1; display: flex; flex-direction: column; background: #FFF; }
+        
+        .chat-header {
+            padding: 10px; background: #F1F0E7;
+            border-bottom: 1px solid #919B9C; font-size: 12px;
+        }
+        .chat-header strong { font-size: 14px; color: #000; }
+
+        .chat-history {
+            flex: 1; padding: 15px; overflow-y: auto;
+            background: #FFF; font-size: 12px;
+            display: flex; flex-direction: column; gap: 5px;
+        }
+
+        /* Estilo de Mensajes MSN - COLORES POR PERSONAJE */
+        .msg-entry { margin-bottom: 4px; line-height: 1.4; }
+        .user-name { font-weight: bold; }
+        
+        .user-ale { color: #0000FF; } /* Alejandro: Azul */
+        .user-bru { color: #2852A9; } /* Bruno: Azul Oscuro */
+        .user-sof { color: #FF69B4; } /* Sofia: Rosa */
+        .user-val { color: #800080; } /* Valeria: Morado */
+        .user-alo { color: #008000; } /* Alonso: Verde */
+
+        .system-date { 
+            text-align: center; color: #666; font-size: 10px; 
+            margin: 15px 0 10px 0; border-top: 1px solid #EEE; padding-top: 5px;
+        }
+
+        .case-tag {
+            font-size: 9px; color: #999; text-transform: uppercase;
+            text-align: right; margin-bottom: 5px;
+        }
+
+        /* Footer del Chat */
+        .chat-footer {
+            height: 80px; padding: 10px; background: #F1F0E7;
+            border-top: 1px solid #919B9C; display: flex; gap: 10px;
+        }
+        .chat-footer textarea { flex: 1; border: 1px solid #919B9C; resize: none; background: #EEE; }
+        .btn-send { width: 60px; height: 30px; background: #F1F0E7; border: 1px solid #919B9C; }
+    </style>
+</head>
+<body>
+
+<div class="msn-container">
+    <div class="contact-list">
+        <div class="user-info">
+            <div style="background:#FFF; width:40px; height:40px; display:flex; align-items:center; justify-content:center; color:#000; font-weight:bold; font-size:20px; border-radius:3px;">Ag</div>
+            <div>
+                <div style="font-weight:bold; font-size:12px;">Agente_FBI (En línea)</div>
+                <div style="font-size:10px;">"CASSANDRA v0.7b"</div>
+            </div>
+        </div>
+        <div class="search-contacts"><input type="text" placeholder="Buscar contacto..."></div>
+        <div class="groups-container">
+            <div class="group-header">HISTORIAL DE CONVERSACIONES RECIENTES</div>
+            <div class="contact-item active" onclick="loadChat(0, this)">
+                <div class="status-icon status-online"></div>
+                <span>Alejandro ↔ Bruno</span>
+            </div>
+            <div class="contact-item" onclick="loadChat(1, this)">
+                <div class="status-icon status-online"></div>
+                <span>Bruno ↔ Sofia_C</span>
+            </div>
+            <div class="contact-item" onclick="loadChat(2, this)">
+                <div class="status-icon status-online"></div>
+                <span>Hermanos Cuervo (Grupo)</span>
+            </div>
+            <div class="group-header">REGISTROS DE DISPOSITIVOS (SMS)</div>
+            <div class="contact-item" onclick="loadChat(3, this)">
+                <div class="status-icon"></div>
+                <span>SMS 'La Familia' (Junio)</span>
+            </div>
+            <div class="contact-item" onclick="loadChat(4, this)">
+                <div class="status-icon"></div>
+                <span>SMS Alonso ↔ Valeria</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-pane">
+        <div class="chat-header" id="chat-title">
+            Para: <strong>Alejandro ↔ Bruno</strong><br>
+            <span style="font-size:10px; color:#666;">Historial recuperado - CASO: CV-2004-ESP-0918</span>
+        </div>
+        
+        <div class="chat-history" id="chat-content">
+            </div>
+
+        <div class="chat-footer">
+            <textarea disabled placeholder="La escritura está deshabilitada en el modo de revisión de historial."></textarea>
+            <button class="btn-send" disabled>Enviar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chats = [
+        {
+            title: "Alejandro ↔ Bruno",
+            subtitle: "Sáb 18 sep 2004, 14:23",
+            messages: [
+                { user: "AlejandroCuervo", text: "¿a qué hora llegás hoy?", style: "user-ale" },
+                { user: "BrunoCuervo_Madrid", text: "hacia las 7, ¿por qué?", style: "user-bru" },
+                { user: "AlejandroCuervo", text: "papá quiere hablar de algo serio. ya sé de qué va", style: "user-ale" },
+                { user: "BrunoCuervo_Madrid", text: "¿el dinero?", style: "user-bru" },
+                { user: "AlejandroCuervo", text: "no. algo más grande. mejor en persona", style: "user-ale" },
+                { user: "BrunoCuervo_Madrid", text: "¿tiene que ver con lo de mateo?", style: "user-bru" },
+                { user: "AlejandroCuervo", text: "sí", style: "user-ale" },
+                { user: "BrunoCuervo_Madrid", text: "¿y sofia sabe?", style: "user-bru" },
+                { user: "AlejandroCuervo", text: "no lo sé. espero que no", style: "user-ale" },
+                { user: "BrunoCuervo_Madrid", text: "¿por qué 'espero'?", style: "user-bru" },
+                { user: "AlejandroCuervo", text: "porque cuando sofia se entera de algo que no le gusta... actúa. olvídalo.\nnos vemos a las 7", style: "user-ale" }
+            ]
+        },
+        {
+            title: "Bruno ↔ Sofia_C",
+            subtitle: "Jue 16 sep 2004, 20:10 | TOP SECRET — CASO: CV-2004-ESP-0918 | Pág 12",
+            messages: [
+                { user: "BrunoCuervo_Madrid", text: "oye, necesito pedirte un favor", style: "user-bru" },
+                { user: "Sofia_C", text: "¿cuál?", style: "user-sof" },
+                { user: "BrunoCuervo_Madrid", text: "préstame el coche el viernes. el mío está en el taller", style: "user-bru" },
+                { user: "Sofia_C", text: "usa el de mamá", style: "user-sof" },
+                { user: "BrunoCuervo_Madrid", text: "mamá dice que no", style: "user-bru" },
+                { user: "Sofia_C", text: "está bien. llaves en el cajón de la entrada. pero solo para lo que dices", style: "user-sof" },
+                { user: "BrunoCuervo_Madrid", text: "prometido. oye... ¿estás bien? estás muy tranquila últimamente", style: "user-bru" },
+                { user: "Sofia_C", text: "es que he crecido, Bruno. ya verás el sábado", style: "user-sof" }
+            ]
+        },
+        {
+            title: "Hermanos Cuervo (Grupo)",
+            subtitle: "Vie 3 sep 2004, 22:15 | Grupo creado 2002",
+            messages: [
+                { user: "BrunoCuervo_Madrid", text: "¿alguien va a la finca este fin de semana?", style: "user-bru" },
+                { user: "AlejandroCuervo", text: "yo estoy. hay que revisar el sistema de riego del sector 4", style: "user-ale" },
+                { user: "BrunoCuervo_Madrid", text: "qué envidia que os quedéis allí. aquí todo el mundo de vacaciones menos yo", style: "user-bru" },
+                { user: "Sofia_C", text: "podrías volver, Bruno. hay sitio", style: "user-sof" },
+                { user: "BrunoCuervo_Madrid", text: "gracias pero no, prefiero Madrid", style: "user-bru" },
+                { user: "AlejandroCuervo", text: "papá preguntó por ti el otro día. dice que tienes el móvil apagado", style: "user-ale" },
+                { user: "BrunoCuervo_Madrid", text: "ya le llamaré. ¿qué quería?", style: "user-bru" },
+                { user: "Sofia_C", text: "cosas del testamento seguramente. últimamente está muy pensativo", style: "user-sof" },
+                { user: "BrunoCuervo_Madrid", text: "qué dramática", style: "user-bru" },
+                { user: "Sofia_C", text: "ya verás", style: "user-sof" }
+            ]
+        },
+        {
+            title: "Grupo SMS 'La Familia'",
+            subtitle: "Junio 2004 | Recuperado de Nokia 3310 de Alejandro",
+            messages: [
+                { user: "Bruno", text: "¿alguien va a la finca este fin de semana?", style: "user-bru" },
+                { user: "Alejandro", text: "yo estoy. hay que revisar el sector 4", style: "user-ale" },
+                { user: "Sofia", text: "os envidio. aquí en madrid hace un calor horrible", style: "user-sof" },
+                { user: "Bruno", text: "¿sofia está en madrid? creía que estabas en la finca", style: "user-bru" },
+                { user: "Sofia", text: "fui a una reunión con el distribuidor de barcelona. volví ayer", style: "user-sof" },
+                { user: "Alejandro", text: "papá preguntó por ti el otro día. dice que tienes el móvil apagado, Bruno", style: "user-ale" },
+                { user: "Bruno", text: "ya le llamaré", style: "user-bru" },
+                { user: "Sofia", text: "cosas del testamento, imagino. está muy pensativo últimamente", style: "user-sof" },
+                { user: "Bruno", text: "siempre tan dramática", style: "user-bru" },
+                { user: "Sofia", text: "ya verás", style: "user-sof" }
+            ]
+        },
+        {
+            title: "Valeria ↔ Don Alonso",
+            subtitle: "Agosto y Septiembre 2004 | SMS Chain | TOP SECRET — Pág 29",
+            messages: [
+                { user: "Alonso", text: "Valeria. Hay algo que debo decirte. Esta noche cuando cene.", style: "user-alo" },
+                { user: "Valeria", text: "¿qué pasa? Me asustas.", style: "user-val" },
+                { user: "Alonso", text: "Nada urgente. Sobre Sofía. Y sobre algo que descubrí.", style: "user-alo" },
+                { user: "Valeria", text: "Alonso, ¿qué descubriste?", style: "user-val" },
+                { user: "Alonso", text: "Hablaremos en persona. No te preocupes.", style: "user-alo" },
+                { user: "Sistema", text: "[Sin respuesta durante 4 horas]", style: "system-date" },
+                { user: "Valeria", text: "Entiendo. Cuando quieras", style: "user-val" }
+            ]
+        }
+    ];
+
+    function loadChat(idx, element) {
+        // UI
+        document.querySelectorAll('.contact-item').forEach(i => i.classList.remove('active'));
+        element.classList.add('active');
+
+        const chat = chats[idx];
+        document.getElementById('chat-title').innerHTML = `Para: <strong>${chat.title}</strong><br><span style="font-size:10px; color:#666;">${chat.subtitle}</span>`;
+        
+        const history = document.getElementById('chat-content');
+        history.innerHTML = '<div class="case-tag">HISTORIAL CLASIFICADO — PROYECTO CASSANDRA</div>';
+        
+        chat.messages.forEach(m => {
+            const div = document.createElement('div');
+            if(m.user === "Sistema") {
+                div.className = "system-date";
+                div.innerText = m.text;
+            } else {
+                div.className = "msg-entry";
+                div.innerHTML = `<span class="user-name ${m.style}">${m.user} dice:</span><br>${m.text.replace(/\n/g, '<br>')}`;
+            }
+            history.appendChild(div);
+        });
+        history.scrollTop = 0;
+    }
+
+    // Inicializar el primer chat
+    window.onload = () => loadChat(0, document.querySelector('.contact-item'));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASSANDRA — VEREDICTO FINAL — CV-2004-ESP-0918</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: linear-gradient(180deg, #6a8bb5 0%, #395e96 40%, #1a3f7a 100%);
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 8px;
+    overflow: hidden;
+  }
+
+  .window {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    border-radius: 8px 8px 4px 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+    border: 1px solid #0d3eaa;
+  }
+
+  .titlebar {
+    background: linear-gradient(180deg,
+      #4d8de8 0%, #2b66d1 8%, #1a52c4 45%,
+      #1248b8 50%, #0d3eaa 55%, #1050c0 92%, #2060d0 100%
+    );
+    padding: 4px 8px 4px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #1a42a0;
+    flex-shrink: 0;
+  }
+  .titlebar-left { display: flex; align-items: center; gap: 6px; }
+  .titlebar-icon { font-size: 14px; }
+  .titlebar-text {
+    font-size: 11px; font-weight: bold; color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+  }
+  .titlebar-text span { color: rgba(255,255,255,0.75); font-weight: normal; }
+  .titlebar-btns { display: flex; gap: 2px; }
+  .titlebar-btns button {
+    width: 22px; height: 18px;
+    background: linear-gradient(180deg, #e8f0fc, #c0d4f0);
+    border: 1px solid #6a8abf;
+    border-radius: 3px;
+    font-size: 9px; font-weight: bold;
+    cursor: pointer; color: #1a1a1a;
+    font-family: Tahoma, sans-serif;
+    line-height: 1;
+  }
+  .titlebar-btns .btn-close {
+    background: linear-gradient(180deg, #e87070, #c84040);
+    color: white; border-color: #a82020;
+  }
+
+  .menubar {
+    background: linear-gradient(180deg, #f5f4ee, #e0dfd6);
+    border-bottom: 1px solid #a0a090;
+    padding: 2px 6px;
+    display: flex; gap: 0;
+    flex-shrink: 0;
+  }
+  .menu-item {
+    padding: 2px 8px;
+    font-size: 11px; color: #1a1a1a;
+    cursor: pointer; border-radius: 2px;
+  }
+  .menu-item:hover { background: #c0d8f0; }
+
+  .content {
+    flex: 1;
+    background: #ece9d8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    gap: 24px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .inner-frame {
+    background: #ffffff;
+    border-top: 1px solid #888;
+    border-left: 1px solid #888;
+    border-bottom: 1px solid #fff;
+    border-right: 1px solid #fff;
+    padding: 24px 32px 28px;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .case-header {
+    text-align: center;
+    border-bottom: 1px solid #c0c0c0;
+    padding-bottom: 14px;
+    width: 100%;
+  }
+  .case-label {
+    font-size: 10px; color: #666; letter-spacing: 1px;
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .case-title {
+    font-size: 16px; font-weight: bold; color: #0050a0;
+  }
+  .case-subtitle {
+    font-size: 11px; color: #444; margin-top: 3px;
+  }
+
+  .suspects-label {
+    font-size: 11px; color: #444; font-weight: bold;
+    align-self: flex-start;
+  }
+  .suspects-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    width: 100%;
+  }
+
+  .susp-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 6px 8px;
+    background: linear-gradient(180deg, #f0f0ea 0%, #ddddd6 45%, #c8c8c0 46%, #e0e0d8 100%);
+    border-top: 1px solid #ffffff;
+    border-left: 1px solid #ffffff;
+    border-bottom: 1px solid #888;
+    border-right: 1px solid #888;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: Tahoma, sans-serif;
+    font-size: 10px;
+    color: #1a1a1a;
+    text-align: center;
+    transition: none;
+    box-shadow: 1px 1px 0 rgba(0,0,0,0.15);
+    line-height: 1.3;
+  }
+  .susp-btn .susp-icon {
+    font-size: 22px;
+    display: block;
+  }
+  .susp-btn:hover {
+    background: linear-gradient(180deg, #e8f0fc 0%, #cce0f4 45%, #b8d4ec 46%, #d8ecf8 100%);
+    border-color: #0050a0;
+  }
+  .susp-btn.selected {
+    background: linear-gradient(180deg, #ddddd6 0%, #e0e0d8 100%);
+    border-top-color: #888;
+    border-left-color: #888;
+    border-bottom-color: #fff;
+    border-right-color: #fff;
+    outline: 2px solid #0050a0;
+    outline-offset: -1px;
+    color: #0050a0;
+    font-weight: bold;
+  }
+  .susp-btn .susp-name { font-weight: bold; }
+
+  .status-bar {
+    background: #f0f0e8;
+    border: 1px inset #aaa;
+    padding: 5px 12px;
+    width: 100%;
+    font-size: 11px;
+    color: #444;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+  }
+  .status-bar.warning { background: #fff8dc; color: #884400; border-color: #cc8800; }
+  .status-bar.ready   { background: #e8f8e8; color: #226622; border-color: #449944; }
+
+  .verdict-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-culpable {
+    padding: 6px 32px;
+    background: linear-gradient(180deg, #f08080 0%, #d44444 45%, #b83030 46%, #cc4040 100%);
+    border-top: 1px solid #ff9999;
+    border-left: 1px solid #ff9999;
+    border-bottom: 1px solid #881818;
+    border-right: 1px solid #881818;
+    border-radius: 3px;
+    color: #ffffff;
+    font-family: Tahoma, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    opacity: 0.4;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .btn-culpable.enabled {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .btn-culpable.enabled:hover {
+    background: linear-gradient(180deg, #ff9090 0%, #e05050 45%, #cc3838 46%, #dd4848 100%);
+  }
+  .btn-culpable.enabled:active {
+    background: linear-gradient(180deg, #b83030 0%, #cc4040 100%);
+    border-top-color: #881818; border-left-color: #881818;
+    border-bottom-color: #ff9999; border-right-color: #ff9999;
+    padding-top: 7px; padding-left: 33px;
+  }
+
+  .window-statusbar {
+    background: linear-gradient(180deg, #ddddd6, #c8c8c0);
+    border-top: 1px solid #c8c4b8;
+    padding: 2px 10px;
+    font-size: 10px;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  /* VERDICT OVERLAY */
+  #verdict-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000000;
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 40px 60px;
+    overflow-y: auto;
+  }
+  #verdict-overlay.active { display: flex; }
+
+  .verdict-name-block {
+    text-align: center;
+    margin-bottom: 32px;
+    flex-shrink: 0;
+  }
+  .verdict-label {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .verdict-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+  }
+  .verdict-name.correct { color: #e05050; text-shadow: 0 0 30px rgba(220,40,40,0.6); }
+  .verdict-name.incorrect { color: #ccaa00; text-shadow: 0 0 30px rgba(200,160,0,0.5); }
+
+  .verdict-divider {
+    width: 100%;
+    max-width: 700px;
+    border: none;
+    border-top: 1px solid #222;
+    margin-bottom: 28px;
+    flex-shrink: 0;
+  }
+
+  #typewriter-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    color: #cccccc;
+    width: 100%;
+    max-width: 700px;
+    white-space: pre-wrap;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: #cccccc;
+    vertical-align: middle;
+    animation: blink-cursor 0.7s step-end infinite;
+    margin-left: 1px;
+  }
+  @keyframes blink-cursor {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0; }
+  }
+
+  #btn-restart {
+    display: none;
+    margin-top: 32px;
+    padding: 6px 24px;
+    background: transparent;
+    border: 1px solid #444;
+    color: #666;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  #btn-restart:hover { border-color: #888; color: #aaa; }
+  #btn-restart.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="window">
+
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-icon">🔒</span>
+      <span class="titlebar-text">CASSANDRA v0.7b — Resolución Final <span>| CV-2004-ESP-0918 | EL PRECIO DEL LEGADO</span></span>
+    </div>
+    <div class="titlebar-btns">
+      <button>─</button>
+      <button>□</button>
+      <button class="btn-close" onclick="window.location.href='escritorio.html'">✕</button>
+    </div>
+  </div>
+
+  <div class="menubar">
+    <span class="menu-item">Archivo</span>
+    <span class="menu-item">Ver</span>
+    <span class="menu-item">Herramientas</span>
+    <span class="menu-item">Ayuda</span>
+  </div>
+
+  <div class="content">
+    <div class="inner-frame">
+
+      <div class="case-header">
+        <div class="case-label">Sistema CASSANDRA — Módulo de Resolución</div>
+        <div class="case-title">CV-2004-ESP-0918 · EL PRECIO DEL LEGADO</div>
+        <div class="case-subtitle">Identifique al responsable de la muerte de Don Alonso Cuervo Díaz</div>
+      </div>
+
+      <div class="suspects-label">Seleccione al sospechoso culpable:</div>
+
+      <div class="suspects-grid">
+        <button class="susp-btn" data-key="Sofia" onclick="selectSuspect(this)">
+          <span class="susp-icon">👩</span>
+          <span class="susp-name">Sofía Cuervo</span>
+        </button>
+        <button class="susp-btn" data-key="Valeria" onclick="selectSuspect(this)">
+          <span class="susp-icon">👩‍🦳</span>
+          <span class="susp-name">Valeria Cruz</span>
+        </button>
+        <button class="susp-btn" data-key="Alejandro" onclick="selectSuspect(this)">
+          <span class="susp-icon">👨‍💼</span>
+          <span class="susp-name">Alejandro Cuervo</span>
+        </button>
+        <button class="susp-btn" data-key="Bruno" onclick="selectSuspect(this)">
+          <span class="susp-icon">👨</span>
+          <span class="susp-name">Bruno Cuervo</span>
+        </button>
+        <button class="susp-btn" data-key="Tomas" onclick="selectSuspect(this)">
+          <span class="susp-icon">👷</span>
+          <span class="susp-name">Tomás Rivas</span>
+        </button>
+      </div>
+
+      <div class="status-bar" id="status-bar">
+        <span>💬</span>
+        <span id="status-text">Seleccione un sospechoso para activar la resolución.</span>
+      </div>
+
+      <div class="verdict-row">
+        <button class="btn-culpable" id="btn-culpable" onclick="emitVerdict()">⚖ DECLARAR CULPABLE</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="window-statusbar">
+    <span>CASSANDRA v0.7b — PRIMERA PRUEBA DE CAMPO</span>
+    <span>Martes, 20 septiembre 2004 — 09:47</span>
+  </div>
+
+</div>
+
+<!-- VERDICT OVERLAY -->
+<div id="verdict-overlay">
+  <div class="verdict-name-block">
+    <div class="verdict-label" id="verdict-label">RESOLUCIÓN TRANSMITIDA</div>
+    <div class="verdict-name" id="verdict-name"></div>
+  </div>
+  <hr class="verdict-divider">
+  <div id="typewriter-text"></div>
+  <button id="btn-restart" onclick="restart()">[ REINICIAR CASO ]</button>
+</div>
+
+<script>
+let selectedKey = null;
+
+function selectSuspect(btn) {
+  document.querySelectorAll('.susp-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedKey = btn.dataset.key;
+
+  const names = {
+    Sofia: 'Sofía Cuervo Cruz',
+    Valeria: 'Valeria Cruz de Cuervo',
+    Alejandro: 'Alejandro Cuervo Cruz',
+    Bruno: 'Bruno Cuervo Cruz',
+    Tomas: 'Tomás Rivas'
+  };
+
+  const sb = document.getElementById('status-bar');
+  const st = document.getElementById('status-text');
+  sb.className = 'status-bar ready';
+  st.textContent = 'Sospechoso seleccionado: ' + names[selectedKey] + '. Pulse DECLARAR CULPABLE para emitir la resolución.';
+
+  document.getElementById('btn-culpable').classList.add('enabled');
+}
+
+const FINAL_A = `EL PRECIO DEL LEGADO
+
+RESOLUCIÓN CORRECTA — SOFÍA CUERVO CRUZ — DETENIDA
+
+El sistema CASSANDRA transmite el informe de resolución a las autoridades españolas a las 09:47 del martes 20 de septiembre de 2004. La Guardia Civil, coordinada con EUROPOL, rodea la casa familiar de los Viñedos Cuervo a las 11:30 de esa misma mañana.
+
+LA DETENCIÓN
+
+Sofía está en el jardín cuando llegan los agentes. Está regando las plantas del porche — las mismas plantas que dijo comprar 'para la salud de Valeria'. Cuando ve los coches oficiales, no corre. No llora. Se queda inmóvil con la manguera en la mano.
+
+Mira a los agentes a los ojos y pregunta, con voz perfectamente controlada:
+
+'¿Puedo llamar a mi abogado antes de entrar?'
+
+En la lectura de cargos, el teniente Morales menciona la Digitalis purpurea. Por primera vez en toda la investigación, la calma de Sofía se rompe de verdad. No en llanto, sino en una sonrisa brevísima, casi imperceptible. Como si encontrara cierta simetría en que al final haya sido precisamente el nombre de la planta lo que la detuvo.
+
+VALERIA — IMPUTADA COMO CÓMPLICE PASIVA
+
+Valeria Cruz es imputada como cómplice pasiva. El cargo específico es 'omisión del deber de socorro' y 'encubrimiento de delito grave'. Cuando el letrado le explica los cargos, ella pregunta solo una cosa:
+
+'¿Sofía va a ir a prisión preventiva?'
+
+El letrado le dice que sí. Valeria cierra los ojos un momento. Luego dice: 'Entonces cuento todo.'
+
+La declaración completa de Valeria dura seis horas. En ella, por primera vez en treinta y cinco años, pronuncia el nombre de Rodrigo Peñas. Cuenta la aventura, la mentira, y la noche del 23 de agosto en que Don Alonso la llamó al estudio y le mostró el informe de ADN sin decir nada — solo mirándola.
+
+Le preguntaron si Don Alonso había dicho algo. 'No', dijo Valeria. 'No hacía falta. Nos miramos durante un minuto y luego él fue a servirse un vaso de agua. Así de sencillo. Y así de terrible.'
+
+EL LEGADO
+
+Alejandro Cuervo Cruz asume la gestión completa de Viñedos Cuervo. Tomás Rivas continúa como capataz. Tres meses después, Alejandro anula el precontrato de venta de las parcelas 8, 9 y 10 — sin saber todavía que esas eran las mejores parcelas de la finca.
+
+Mateo Villanueva es reconocido legalmente como heredero. Recibe su 30% de la finca. En la primera reunión con Alejandro, hay un silencio largo antes de que ninguno de los dos sepa qué decirse. Al final, Alejandro le dice:
+
+'Aquí hay mucho que aprender. Si quieres empezar por los viñedos, Tomás puede enseñarte todo.'
+
+Es lo más parecido a una bienvenida que cualquiera de los dos podría haber esperado.
+
+El Cuervo Negro Reserva 1998 gana ese año su quinto premio nacional. Nadie en el jurado sabe que la última botella de esa añada que salió de la bodega familiar fue la que mató a su creador.
+
+CASO CV-2004-ESP-0918 — CERRADO`;
+
+const FINAL_B_INTRO = `CENIZAS DEL VALLE
+
+RESOLUCIÓN INCORRECTA — INOCENTE DETENIDO — SOFÍA LIBRE
+
+El sistema CASSANDRA procesa la resolución a las 08:12 del martes 20 de septiembre. El informe es transmitido. La Guardia Civil llega a la casa familiar dos horas después.
+
+LA DETENCIÓN EQUIVOCADA
+
+`;
+
+const FINAL_B_DETENCIONES = {
+  Valeria: `Valeria está en el salón tomando café cuando llegan. Se levanta despacio, con la dignidad contenida de quien ha aprendido a soportarlo todo sin mostrar nada. No dice una sola palabra durante la lectura de cargos. Su letrado particular, convocado en menos de veinte minutos, exige una rueda de prensa antes incluso de llegar a comisaría.
+
+El caso contra Valeria se desmorona en setenta y dos horas. Las coartadas son sólidas, el móvil discutible, y la declaración de Esteban confirma que Valeria no estuvo sola en ningún momento de la tarde. El juez decreta la libertad provisional con una sola frase:
+
+'No hay indicios suficientes. Señora Cruz, puede retirarse.'
+
+Valeria se pone los guantes, recoge el bolso y sale sin mirar a nadie.
+`,
+  Alejandro: `Alejandro está revisando documentos de la bodega cuando llegan. Los recibe de pie, con la rigidez de quien espera que todo sea un malentendido resolvible con las palabras correctas. Durante la lectura de cargos, no interrumpe. Solo dice: 'Necesito hablar con mi abogado.'
+
+Tomás Rivas aparece en comisaría dos horas después, sin que nadie le haya llamado. Declara durante cuatro horas. Sus palabras son exactas, medidas, irrefutables. La coartada de Alejandro queda establecida sin margen de duda.
+
+La detención se revoca en cuarenta y ocho horas. Alejandro sale sin decir nada a los periodistas que esperan en la puerta. Tomás le espera en el coche. No se dicen nada en todo el trayecto de vuelta.
+`,
+  Bruno: `Bruno está en el salón cuando llegan. La reacción inicial es de rabia pura — insultos, forcejeo verbal, la misma energía reactiva que lo convirtió en el sospechoso favorito. Elena Mora, que está a su lado, empieza a llorar. 'Él no fue', repite. 'Él no fue.'
+
+El letrado de oficio tardará tres semanas en demostrar que Bruno estaba en la cocina con Elena durante el momento del envenenamiento. Para entonces, los periódicos ya han publicado su foto. Sus deudas han salido a la luz. Elena ha recogido sus cosas del piso.
+
+Bruno saldrá sin cargos. Pero ya nada será lo mismo.
+`,
+  Tomas: `Tomás está revisando las cepas del sector norte cuando llegan los coches oficiales. Los ve aparecer por el camino de tierra y no se mueve. Cuando los agentes le rodean, solo dice: 'Esperen. Déjenme terminar de anotar esto.'
+
+Termina de escribir en su libreta. La cierra. Entonces levanta la vista.
+
+En comisaría no dice una sola palabra sin su abogado presente. El expediente policial describe su actitud como 'cooperativa pero hermética'. Alejandro Cuervo llama a su letrado personal esa misma tarde. No para defenderle a sí mismo. Para defenderle a él.
+
+La coartada se establece en menos de cuarenta y ocho horas. Tomás sale sin mirar atrás. Pero los viñedos ya no son los mismos para él.
+`
+};
+
+const FINAL_B_DESPUES = `
+LA NOCHE DEL MARTES — MIENTRAS EL INOCENTE ESTÁ DETENIDO
+
+Sofía pasa la noche del martes en la finca. Es la primera vez en su vida que está completamente sola en la casa de su infancia. Sin su padre. Sin Valeria. Sin sus hermanos. Nadie sabe exactamente qué hizo durante esas horas.
+
+Esteban, el mayordomo, declara que la vio caminar por los viñedos a las tres de la madrugada con una linterna. También vio luz en el estudio hasta las cinco.
+
+EL AMANECER DEL MIÉRCOLES — EL INCENDIO
+
+A las 06:23 del miércoles 21 de septiembre, Esteban huele a humo. Sale al jardín. Las parcelas 8, 9 y 10 — el sector oeste, el que producía el Cuervo Negro Reserva, el mismo que Don Alonso había intentado vender — están en llamas.
+
+El fuego se extiende hacia el este con una velocidad que los bomberos de Cervendillo describirán más tarde como 'inusual para ser accidental'. Cuando llegan los primeros camiones, el sector norte ya está ardiendo.
+
+Cuarenta y tres hectáreas de viñedo. Cuatro décadas de trabajo. Cinco premios nacionales del Cuervo Negro Reserva. La marca más antigua de la comarca.
+
+A las 09:15, cuando los bomberos consiguen controlar el fuego, queda en pie menos del 30% de la finca. Entre los escombros carbonizados, alguien encuentra una lata de gasolina junto al muro del sector norte. No hay huellas utilizables.
+
+SOFÍA — DESPUÉS
+
+Sofía no está en la finca cuando llegan los bomberos. Esteban declara que la vio coger su coche a las 05:50, antes del amanecer, con una maleta pequeña.
+
+El Nokia de Sofía deja de tener señal en las afueras de Salamanca.
+
+El banco registra una retirada de 4.000 euros en efectivo en el cajero de la estación de tren a las 06:05 del miércoles 21 de septiembre de 2004.
+
+No hay más registros de Sofía Cuervo Cruz después de esa fecha.
+
+EL PRECIO DEL LEGADO
+
+Don Alonso pasó cuarenta años construyendo un legado. Lo construyó sobre una mentira que no era suya. Lo protegió con secretos que no debería haber guardado. Y al final, cuando intentó hacerlo bien —reconocer a Mateo, dejar las cosas en orden, pagar el precio de todas las verdades aplazadas—, ya era demasiado tarde.
+
+Los viñedos que Alejandro Cuervo amaba, que Tomás Rivas conocía mejor que a sí mismo, que Sofía Cuervo utilizó como campo de batalla de una guerra que solo existía en su cabeza, son ahora tierra quemada.
+
+El precio del legado lo pagó todo el mundo. Menos quien lo debía.
+
+CASO CV-2004-ESP-0918 — CERRADO EN ERROR`;
+
+function emitVerdict() {
+  if (!selectedKey) return;
+
+  const overlay = document.getElementById('verdict-overlay');
+  const nameEl  = document.getElementById('verdict-name');
+  const labelEl = document.getElementById('verdict-label');
+
+  const displayNames = {
+    Sofia:     'SOFÍA CUERVO CRUZ',
+    Valeria:   'VALERIA CRUZ DE CUERVO',
+    Alejandro: 'ALEJANDRO CUERVO CRUZ',
+    Bruno:     'BRUNO CUERVO CRUZ',
+    Tomas:     'TOMÁS RIVAS'
+  };
+
+  nameEl.textContent = displayNames[selectedKey];
+
+  const isCorrect = selectedKey === 'Sofia';
+
+  if (isCorrect) {
+    nameEl.className = 'verdict-name correct';
+    labelEl.textContent = 'RESOLUCIÓN CORRECTA — CULPABLE IDENTIFICADO';
+  } else {
+    nameEl.className = 'verdict-name incorrect';
+    labelEl.textContent = 'RESOLUCIÓN INCORRECTA — INOCENTE DETENIDO';
+  }
+
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  let fullText;
+  if (isCorrect) {
+    fullText = FINAL_A;
+  } else {
+    fullText = FINAL_B_INTRO + (FINAL_B_DETENCIONES[selectedKey] || '') + FINAL_B_DESPUES;
+  }
+
+  setTimeout(() => typewrite(fullText, 0), 800);
+}
+
+let typeTimer = null;
+let currentText = '';
+
+function typewrite(text, index) {
+  const el = document.getElementById('typewriter-text');
+
+  if (index === 0) {
+    el.innerHTML = '';
+    currentText = '';
+  }
+
+  if (index >= text.length) {
+    el.innerHTML = formatText(text) + '<span class="cursor"></span>';
+    setTimeout(() => {
+      el.innerHTML = formatText(text);
+      document.getElementById('btn-restart').classList.add('show');
+    }, 1500);
+    return;
+  }
+
+  currentText += text[index];
+  el.innerHTML = formatText(currentText) + '<span class="cursor"></span>';
+
+  const overlay = document.getElementById('verdict-overlay');
+  overlay.scrollTop = overlay.scrollHeight;
+
+  const ch = text[index];
+  let delay = 18;
+  if (ch === '\n') delay = 40;
+  else if (ch === '.' || ch === '—') delay = 60;
+  else if (ch === ',') delay = 35;
+  else if (ch === ' ') delay = 8;
+
+  typeTimer = setTimeout(() => typewrite(text, index + 1), delay);
+}
+
+function formatText(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/(RESOLUCIÓN CORRECTA[^\n]+)/g, '<span style="color:#66cc88;font-weight:bold;">$1</span>')
+    .replace(/(RESOLUCIÓN INCORRECTA[^\n]+)/g, '<span style="color:#cc6644;font-weight:bold;">$1</span>')
+    .replace(/(CASO CV-2004[^\n]+)/g, '<span style="color:#888888;letter-spacing:1px;">$1</span>')
+    .replace(/^([A-ZÁÉÍÓÚÑÜ ]+—[^\n]+)$/gm, '<span style="color:#999999;font-size:10px;letter-spacing:2px;">$1</span>')
+    .replace(/^([A-ZÁÉÍÓÚÑÜ ]{6,})$/gm, (m) => {
+      if (m.trim().split(' ').length <= 6) return `<span style="color:#888888;letter-spacing:2px;">${m}</span>`;
+      return m;
+    });
+}
+
+function restart() {
+  if (typeTimer) clearTimeout(typeTimer);
+  document.getElementById('verdict-overlay').classList.remove('active');
+  document.getElementById('typewriter-text').innerHTML = '';
+  document.getElementById('btn-restart').classList.remove('show');
+  document.querySelectorAll('.susp-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('btn-culpable').classList.remove('enabled');
+  const sb = document.getElementById('status-bar');
+  sb.className = 'status-bar';
+  document.getElementById('status-text').textContent = 'Seleccione un sospechoso para activar la resolución.';
+  selectedKey = null;
+}
+</script>
+</body>
+</html>

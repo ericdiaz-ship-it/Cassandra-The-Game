@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Internet Explorer 6 - Registro de Navegación</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: 'Tahoma', sans-serif;
+            background-color: #ECE9D8;
+            overflow: hidden;
+        }
+
+        /* --- MARCO DE VENTANA --- */
+        .ie-container {
+            display: flex; flex-direction: column; height: 100vh;
+            border: 2px solid #0058EE;
+        }
+
+        .title-bar {
+            background: linear-gradient(to right, #0058ee 0%, #127dff 100%);
+            color: white; padding: 3px 10px; font-weight: bold; font-size: 13px;
+            display: flex; justify-content: space-between;
+        }
+
+        .menu-bar { background: #ECE9D8; font-size: 11px; padding: 2px 5px; border-bottom: 1px solid #ACA899; }
+        .menu-bar span { padding: 2px 6px; }
+
+        .toolbar {
+            background: #ECE9D8; padding: 5px; display: flex; gap: 5px;
+            border-bottom: 1px solid #ACA899; align-items: center;
+        }
+        .tool-btn {
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 10px; padding: 3px 8px; border: 1px solid transparent; color: #444; cursor: pointer;
+        }
+        .tool-btn:hover { border: 1px solid #919B9C; background: #F1F0E7; }
+        .tool-icon { font-size: 18px; margin-bottom: 2px; }
+
+        .address-bar {
+            background: #ECE9D8; padding: 5px; display: flex; align-items: center;
+            gap: 5px; border-bottom: 1px solid #ACA899; font-size: 12px;
+        }
+        .address-input {
+            flex: 1; background: white; border: 1px solid #7F9DB9;
+            padding: 2px 5px; font-family: sans-serif;
+        }
+
+        /* --- PESTAÑAS --- */
+        .tab-container {
+            background: #DEDCD3; display: flex; padding: 5px 5px 0 5px;
+            border-bottom: 1px solid #ACA899; gap: 2px;
+        }
+        .tab {
+            padding: 6px 15px; background: #B5B2AD; border: 1px solid #ACA899;
+            border-bottom: none; border-radius: 4px 4px 0 0; font-size: 11px;
+            cursor: pointer; color: #444;
+        }
+        .tab.active {
+            background: #FFF; font-weight: bold; border-bottom: 1px solid #FFF;
+            margin-bottom: -1px; color: #000;
+        }
+
+        /* --- CUERPO Y HISTORIAL --- */
+        .browser-body { display: flex; flex: 1; overflow: hidden; background: white; }
+        
+        #history-sidebar {
+            width: 240px; background: #F1F0E7; border-right: 2px solid #ACA899;
+            display: none; flex-direction: column; padding: 10px;
+        }
+        .history-header { 
+            font-weight: bold; font-size: 12px; border-bottom: 1px solid #ACA899; 
+            padding-bottom: 5px; margin-bottom: 10px; display: flex; justify-content: space-between;
+        }
+        .history-item { 
+            padding: 8px; font-size: 11px; cursor: pointer; border-bottom: 1px dotted #CCC;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .history-item:hover { background: #316AC5; color: white; }
+
+        .web-view { flex: 1; overflow-y: auto; position: relative; }
+        .page-content { padding: 30px; max-width: 800px; margin: 0 auto; display: none; }
+        .page-content.active { display: block; }
+
+        /* ESTILOS DE CONTENIDO */
+        .news-header { border-bottom: 3px double #000; text-align: center; margin-bottom: 20px; }
+        .news-title { font-family: 'Times New Roman', serif; font-size: 32px; font-weight: bold; }
+        .tag-red { background: #CC0000; color: white; padding: 4px 8px; font-weight: bold; display: inline-block; }
+        .info-box { border: 1px solid #CCC; padding: 20px; background: #F9F9F9; }
+        .pharmacy-header { background: #008040; color: white; padding: 15px; text-align: center; }
+
+        .status-bar {
+            background: #ECE9D8; height: 20px; border-top: 1px solid #ACA899;
+            display: flex; align-items: center; padding: 0 5px; font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="ie-container">
+    <div class="title-bar">
+        <span id="window-title">Explorador - Microsoft Internet Explorer</span>
+        <span> _ □ × </span>
+    </div>
+
+    <div class="menu-bar">
+        <span>Archivo</span><span>Edición</span><span>Ver</span><span>Favoritos</span><span>Herramientas</span><span>Ayuda</span>
+    </div>
+
+    <div class="toolbar">
+        <div class="tool-btn"> <span class="tool-icon">⬅️</span> <span>Atrás</span> </div>
+        <div class="tool-btn"> <span class="tool-icon">➡️</span> <span>Adelante</span> </div>
+        <div class="tool-btn"> <span class="tool-icon">🏠</span> <span>Inicio</span> </div>
+        <div style="width: 1px; height: 30px; background: #ACA899; margin: 0 5px;"></div>
+        <div class="tool-btn"> <span class="tool-icon">🔍</span> <span>Buscar</span> </div>
+        <div class="tool-btn"> <span class="tool-icon">⭐</span> <span>Favoritos</span> </div>
+        <div class="tool-btn" onclick="toggleHistory()" style="background: #DEDCD3; border: 1px solid #919B9C;"> 
+            <span class="tool-icon">...</span> <span>Historial</span> 
+        </div>
+    </div>
+
+    <div class="address-bar">
+        <span>Dirección</span>
+        <input type="text" class="address-input" id="url-bar" readonly>
+    </div>
+
+    <div class="tab-container" id="tabs-main">
+        <div class="tab active" onclick="switchTab(0)">La Voz del Valle</div>
+        <div class="tab" onclick="switchTab(1)">ElMundo.es</div>
+    </div>
+
+    <div class="browser-body">
+        <div id="history-sidebar">
+            <div class="history-header">Historial de Caché <span style="cursor:pointer" onclick="toggleHistory()">×</span></div>
+            <div class="history-item" onclick="switchTab(2)">
+                <span>📄</span>
+                <div><strong>Lab Genético del Valle</strong><br><small>Resultados de acceso</small></div>
+            </div>
+            <div class="history-item" onclick="switchTab(3)">
+                <span>📄</span>
+                <div><strong>Farmacia Central</strong><br><small>Ficha: Digitalis 30CH</small></div>
+            </div>
+        </div>
+
+        <div class="web-view">
+            
+            <div id="page-0" class="page-content active">
+                <div class="news-header">
+                    <h1 class="news-title">LA VOZ DEL VALLE</h1>
+                    <div style="border-top:1px solid #000; border-bottom:1px solid #000; padding:5px; font-size:12px; display:flex; justify-content:space-between;">
+                        <span>Edición Digital</span>
+                        <span>Jueves, 2 de septiembre de 2004</span>
+                    </div>
+                </div>
+                <h2>La familia Villanueva de Cervendillo reclama el reconocimiento de un heredero del grupo Cuervo</h2>
+                <p><strong>Un abogado de Salamanca presentó ante el Registro Civil una solicitud de filiación a nombre de Mateo Villanueva, 26 años</strong></p>
+                <p>La familia Villanueva ha dado el paso definitivo que el pueblo llevaba meses rumoreando. Mateo Villanueva presentó una solicitud de reconocimiento de paternidad contra el empresario Alonso Cuervo Medina.</p>
+                <p>Los Viñedos Cuervo, valorados en varios millones de euros, son uno de los patrimonios más significativos de la comarca. La familia Cuervo no ha realizado declaraciones públicas.</p>
+                <p>Según fuentes del entorno de los Villanueva, el proceso podría resolverse en semanas si el señor Cuervo decide no impugnarlo. De lo contrario, el litigio podría alargarse meses.</p>
+            </div>
+
+            <div id="page-1" class="page-content">
+                <div class="tag-red">ELMUNDO.ES — ARCHIVO</div>
+                <p style="font-size:11px; color:#666; margin-top:10px;">Archivo digital, julio 2004 | Guardado: 12 sep 2004</p>
+                <h1 style="font-family: Georgia, serif; font-size:28px;">El veneno de la viña: la digitalina, de planta medicinal a arma de crimen</h1>
+                <p>La Digitalis purpurea lleva siglos utilizada en medicina para tratar afecciones cardíacas. Sin embargo, la diferencia entre dosis terapéutica y letal es extraordinariamente estrecha.</p>
+                <p>Un caso en Bretaña, Francia, en el que un anciano falleció aparentemente de infarto fue reabierto al descubrirse que su cuidadora había adquirido extracto de digital semanas antes. La digitalina no aparece en análisis toxicológicos estándar. Solo un protocolo específico de cribado puede detectarla.</p>
+                <p>En España, los extractos de Digitalis en presentación homeopática (diluciones 30CH) se venden libremente en farmacias sin receta.</p>
+            </div>
+
+            <div id="page-2" class="page-content">
+                <div class="info-box">
+                    <h2 style="color:#003366; border-bottom:2px solid #003366;">Laboratorio Genético del Valle — Portal de Resultados Privados</h2>
+                    <p>Esta página requería contraseña de acceso. La sesión está cerrada pero el caché conserva la estructura.</p>
+                    <p>El historial de IE muestra que esta URL fue visitada el <strong>23 de agosto de 2004</strong> y nuevamente el <strong>14 de septiembre de 2004</strong>.</p>
+                    <div style="background:#EEE; padding:10px; border:1px dashed #999; font-size:11px; color:#555;">
+                        REGISTRO DEL SISTEMA: El usuario 'A_CUERVO_OFFICE' accedió a los resultados de compatibilidad.
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-3" class="page-content">
+                <div class="pharmacy-header">
+                    <h1 style="margin:0;">Farmacia Central de Cervendillo</h1>
+                    <p style="margin:0;">Homeopatía y Fitoterapia</p>
+                </div>
+                <div style="padding:20px; border:1px solid #CCC;">
+                    <p style="font-size:10px; color:#999;">Página 17 | CASO: CV-2004-ESP-0918 | EL PRECIO DEL LEGADO</p>
+                    <h3 style="color:#008040;">Digitalis purpurea 30CH — 8,50 € — Sin receta.</h3>
+                    <p>La página fue guardada en caché el <strong>14 de septiembre de 2004.</strong></p>
+                    <p style="background:#FFFFCC; padding:10px; border:1px solid #E6DB55;">
+                        <strong>Nota del producto:</strong> 'Consulte a su médico antes de usar en casos de patología cardíaca preexistente.'
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <span style="padding-left:10px;">🌐 Internet</span>
+    </div>
+</div>
+
+<script>
+    const urls = [
+        "http://www.lavozdelvalle.es/noticia-villanueva.htm",
+        "http://www.elmundo.es/archivo/digitalina.html",
+        "https://www.labgeneticovalle.es/resultados/confidencial.htm",
+        "http://www.farmaciacentral-cervendillo.es/homeopatia/digitalis"
+    ];
+
+    function toggleHistory() {
+        const sidebar = document.getElementById('history-sidebar');
+        sidebar.style.display = (sidebar.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    function switchTab(index) {
+        // Ocultar todas las páginas
+        document.querySelectorAll('.page-content').forEach((p, i) => {
+            p.classList.toggle('active', i === index);
+        });
+
+        // Gestionar estado de pestañas (solo para las 2 primeras)
+        const tabs = document.querySelectorAll('.tab');
+        tabs[0].classList.toggle('active', index === 0);
+        tabs[1].classList.toggle('active', index === 1);
+
+        // Si es una página de historial, quitar el active de las pestañas
+        if (index > 1) {
+            tabs[0].classList.remove('active');
+            tabs[1].classList.remove('active');
+        }
+
+        document.getElementById('url-bar').value = urls[index];
+        
+        // Si el usuario clica algo del historial, cerrar el historial automáticamente
+        if(index > 1) {
+            document.getElementById('history-sidebar').style.display = 'none';
+        }
+    }
+
+    // Inicio
+    window.onload = () => document.getElementById('url-bar').value = urls[0];
+</script>
+
+</body>
+</html>

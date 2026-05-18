@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Entorno Simulado XP - Proyecto CASSANDRA</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; font-family: Tahoma, sans-serif;
+            /* Fondo Azul Clásico de Windows XP */
+            background-color: #004E98; 
+            background-image: radial-gradient(circle, #005be6, #003a7a);
+        }
+
+        /* Iconos del Escritorio */
+        .desktop-icons { 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            align-content: flex-start; 
+            flex-wrap: wrap; 
+            height: calc(100vh - 40px); 
+        }
+        .icon { 
+            width: 90px; 
+            text-align: center; 
+            color: white; 
+            font-size: 11px; 
+            text-shadow: 1px 1px 2px #000; 
+            cursor: pointer; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            border: 1px solid transparent; 
+            padding: 5px; 
+            transition: 0.1s;
+        }
+        .icon:hover { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 3px; }
+        .icon-emoji { font-size: 38px; margin-bottom: 4px; display: block; }
+        .bold { font-weight: bold; }
+
+        /* Menú Contextual (Clic Derecho) */
+        #context-menu {
+            position: absolute; width: 160px; background: #FFF; border: 1px solid #999;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3); display: none; z-index: 10000;
+            font-size: 12px; padding: 2px; color: black;
+        }
+        .menu-item { padding: 5px 20px; cursor: default; }
+        .menu-item:hover { background: #316AC5; color: #FFF; }
+        .menu-sep { border-bottom: 1px solid #CCC; margin: 2px 0; }
+
+        /* Ventana de Propiedades */
+        .window-prop {
+            position: absolute; width: 380px; background: #ECE9D8; border: 3px solid #0058EE;
+            border-radius: 8px 8px 0 0; box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+            display: none; z-index: 9999; top: 15%; left: 30%;
+        }
+        .win-title {
+            background: linear-gradient(to right, #0058ee 0%, #127dff 100%);
+            color: white; padding: 5px 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;
+        }
+        .close-btn { cursor: pointer; background: #e04343; padding: 0 5px; border: 1px solid white; border-radius: 2px; }
+        
+        .win-tabs { display: flex; padding: 10px 10px 0 10px; gap: 2px; background: #ECE9D8; }
+        .tab { 
+            padding: 4px 12px; background: #DCDAD0; border: 1px solid #919B9C; 
+            border-bottom: none; border-radius: 4px 4px 0 0; font-size: 11px; cursor: pointer;
+        }
+        .tab.active { background: #FFF; font-weight: bold; position: relative; top: 1px; z-index: 2; border-bottom: 1px solid white; }
+        .tab-content { 
+            background: #FFF; margin: 0 10px 10px 10px; border: 1px solid #919B9C; 
+            padding: 20px; font-size: 12px; height: 260px; overflow-y: auto; color: #000;
+        }
+
+        /* Logs */
+        .log-line { font-family: 'Courier New', monospace; font-size: 11px; border-bottom: 1px solid #EEE; padding: 4px 0; }
+        .log-user-alert { color: #d00; font-weight: bold; background: #ffffcc; }
+
+        /* Barra de tareas */
+        .taskbar {
+            position: absolute; bottom: 0; width: 100%; height: 30px;
+            background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #245edb 92%, #333 100%);
+            display: flex; justify-content: space-between; align-items: center; z-index: 1000;
+        }
+        .start-button {
+            height: 100%; background: linear-gradient(to bottom, #3b8821 0%, #46ac23 50%, #367d1d 100%);
+            color: white; font-weight: bold; font-style: italic; border: none; border-radius: 0 10px 10px 0; padding: 0 15px; cursor: pointer;
+        }
+        .clock { color: white; padding-right: 15px; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+    <div class="desktop-icons">
+        <div class="icon" oncontextmenu="showMenu(event)" onclick="openAppPopup('mis_documentos.html','MisDocsPopup')">
+            <span class="icon-emoji">📂</span>
+            <span>Mis Documentos</span>
+        </div>
+        
+        <div class="icon" onclick="abrirChat()">
+            <span class="icon-emoji">👁️</span>
+            <span class="bold">CASSANDRA Chat</span>
+        </div>
+
+        <div class="icon" onclick="openAppPopup('outlook.html', 'OutlookPopup')"><span class="icon-emoji">📧</span><span>Outlook Express</span></div>
+        <div class="icon" onclick="openAppPopup('messanger.html', 'MessengerPopup')"><span class="icon-emoji">💬</span><span>MSN Messenger</span></div>
+        <div class="icon" onclick="openAppPopup('Internet.html', 'InternetPopup')"><span class="icon-emoji">🌐</span><span>Internet Explorer</span></div>
+        <div class="icon"><span class="icon-emoji">📷</span><span>Mis Imágenes</span></div>
+        <div class="icon" onclick="openAppPopup('diario_doc.html','DiarioPopup')"><span class="icon-emoji">📝</span><span>Diario.doc</span></div>
+        <div class="icon"><span class="icon-emoji">🗑️</span><span>Papelera</span></div>
+        
+        <div class="icon" style="margin-top: 20px;" onclick="window.location.href='final.html'">
+            <span class="icon-emoji">⚖️</span>
+            <span class="bold">RESOLUCIÓN</span>
+        </div>
+    </div>
+
+    <div id="context-menu">
+        <div class="menu-item" onclick="alert('Abriendo carpeta...')">Abrir</div>
+        <div class="menu-item">Explorar</div>
+        <div class="menu-item">Buscar...</div>
+        <div class="menu-sep"></div>
+        <div class="menu-item">Compartir y seguridad...</div>
+        <div class="menu-sep"></div>
+        <div class="menu-item">Enviar a</div>
+        <div class="menu-sep"></div>
+        <div class="menu-item">Cortar</div>
+        <div class="menu-item">Copiar</div>
+        <div class="menu-sep"></div>
+        <div class="menu-item" onclick="openProperties()" style="font-weight:bold">Propiedades</div>
+    </div>
+
+    <div id="prop-window" class="window-prop">
+        <div class="win-title">
+            <span>Propiedades de Mis Documentos</span>
+            <span class="close-btn" onclick="closeProperties()">×</span>
+        </div>
+        <div class="win-tabs">
+            <div id="tab-btn-general" class="tab active" onclick="switchTab('general')">General</div>
+            <div id="tab-btn-compartir" class="tab" onclick="switchTab('compartir')">Compartir</div>
+            <div id="tab-btn-logs" class="tab" onclick="switchTab('logs')">Logs de Acceso</div>
+        </div>
+        
+        <div class="tab-content" id="content-general">
+            <div style="display:flex; gap:15px">
+                <span style="font-size:45px">📂</span>
+                <div>
+                    <strong>Tipo:</strong> Carpeta de archivos<br>
+                    <strong>Ubicación:</strong> C:\Documents and Settings\Alonso<br>
+                    <strong>Tamaño:</strong> 1.42 GB (1.528.112.441 bytes)<br>
+                    <strong>Contenido:</strong> 424 archivos, 32 carpetas
+                </div>
+            </div>
+            <hr style="border:0; border-top:1px solid #CCC; margin:15px 0;">
+            <p><strong>Creado:</strong> miércoles, 12 de mayo de 1999, 14:22:10</p>
+            <p><strong>Atributos:</strong> <input type="checkbox" checked disabled> Sólo lectura <input type="checkbox" disabled> Oculto</p>
+        </div>
+        
+        <div class="tab-content" id="content-compartir" style="display:none">
+            <p>Uso compartido y seguridad en red</p>
+            <div style="border:1px solid #CCC; padding:10px; background:#F9F9F9">
+                <p>Para compartir esta carpeta con otros usuarios, haga clic en Compartir.</p>
+                <input type="radio" name="share" disabled> No compartir esta carpeta<br>
+                <input type="radio" name="share" disabled> Compartir esta carpeta<br>
+            </div>
+            <p style="color:blue; font-size:10px;">Acceso restringido por protocolo CASSANDRA.</p>
+        </div>
+
+        <div class="tab-content" id="content-logs" style="display:none">
+            <div style="margin-bottom:10px; font-weight:bold; color:#333; border-bottom:1px solid #333">Historial de Auditoría Local:</div>
+            <div class="log-line">18/09/2004 21:05 - Sesión iniciada: DonAlonso</div>
+            <div class="log-line">18/09/2004 22:10 - Lectura: Testamento_V2.pdf</div>
+            <div class="log-line">18/09/2004 23:45 - <span class="log-user-alert">ACCESO EXTERNO: SOFIA</span></div>
+            <div class="log-line">18/09/2004 23:48 - <span class="log-user-alert">MODIFICACIÓN: 'Ultima_Voluntad.doc'</span></div>
+            <div class="log-line">18/09/2004 23:55 - <span class="log-user-alert">ELIMINACIÓN PERMANENTE: 'Acuerdo_Paternidad.bak'</span></div>
+            <div class="log-line">19/09/2004 00:05 - Cierre de sesión forzado</div>
+            <div class="log-line">19/09/2004 08:30 - Acceso Administrador: FBI_Field_Unit</div>
+        </div>
+    </div>
+
+    <div class="taskbar">
+        <button class="start-button">Inicio</button>
+        <div class="clock">19:30 - 19/09/2004</div>
+    </div>
+
+    <script>
+        const menu = document.getElementById('context-menu');
+        const propWin = document.getElementById('prop-window');
+
+        // Menú contextual
+        function showMenu(e) {
+            e.preventDefault();
+            menu.style.display = 'block';
+            menu.style.left = e.pageX + 'px';
+            menu.style.top = e.pageY + 'px';
+        }
+
+        window.onclick = function() {
+            menu.style.display = 'none';
+        }
+
+        // Propiedades
+        function openProperties() {
+            propWin.style.display = 'block';
+            switchTab('general');
+        }
+
+        function closeProperties() {
+            propWin.style.display = 'none';
+        }
+
+        function switchTab(tabName) {
+            // Contenidos
+            document.getElementById('content-general').style.display = 'none';
+            document.getElementById('content-compartir').style.display = 'none';
+            document.getElementById('content-logs').style.display = 'none';
+            document.getElementById('content-' + tabName).style.display = 'block';
+
+            // Botones de pestaña
+            document.getElementById('tab-btn-general').classList.remove('active');
+            document.getElementById('tab-btn-compartir').classList.remove('active');
+            document.getElementById('tab-btn-logs').classList.remove('active');
+            document.getElementById('tab-btn-' + tabName).classList.add('active');
+        }
+
+        function openAppPopup(url, name) {
+            window.open(url, name, 'width=800,height=600,resizable=yes,scrollbars=yes');
+        }
+
+        function abrirChat() {
+            window.open('chat.html', 'CassandraChat', 'width=750,height=520,resizable=no');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Diario.doc</title>
+  <style>
+    *{box-sizing:border-box}
+    body,html{height:100%;margin:0;font-family:Tahoma,Arial,sans-serif;background:linear-gradient(180deg,#6a8bb5 0%,#395e96 40%,#1a3f7a 100%);color:#111}
+    .window{width:820px;margin:40px auto;background:#ece9d8;border-radius:8px;border:1px solid #0d3eaa;box-shadow:0 6px 20px rgba(0,0,0,0.5);overflow:hidden}
+    .titlebar{background:linear-gradient(180deg,#4d8de8 0%,#1248b8 100%);color:#fff;padding:6px 10px;display:flex;align-items:center;justify-content:space-between}
+    .titlebar .title{font-weight:bold;font-size:13px}
+    .titlebar button{background:linear-gradient(180deg,#e87070,#c84040);border:1px solid #a82020;color:#fff;padding:3px 8px;border-radius:4px;cursor:pointer}
+    .content{padding:18px;background:#fff;display:flex;gap:18px}
+    .col{flex:1;background:#fafafa;border:1px solid #e6e2d6;padding:12px;border-radius:6px}
+    .col h3{margin-bottom:8px;color:#0050a0}
+    .doc-item{display:block;padding:8px 10px;border:1px solid #ddd;background:linear-gradient(180deg,#fff,#f7f7f2);border-radius:4px;margin-bottom:8px;cursor:pointer;text-decoration:none;color:#000}
+    .doc-item:hover{background:linear-gradient(180deg,#e8f0fc,#dbe9fb);border-color:#0050a0}
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar">
+      <div class="title">Diario.doc <small>| Registros por persona</small></div>
+      <div><button onclick="window.close()">✕</button></div>
+    </div>
+    <div class="content">
+      <div class="col">
+        <h3>Alonso</h3>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Alonso/23__agenda_alejandro_papel.pdf')">23__agenda_alejandro_papel.pdf</a>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Alonso/22__agenda_personal_alonso.pdf')">22__agenda_personal_alonso.pdf</a>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Alonso/15_nota_manuscrita_alonso.pdf')">15_nota_manuscrita_alonso.pdf</a>
+      </div>
+      <div class="col">
+        <h3>Sofía</h3>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Sofia/11_diario_sofia.pdf')">11_diario_sofia.pdf</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openDocument(file){
+      const url = 'viewer.html?file=' + encodeURIComponent(file);
+      window.open(url, 'DocViewer', 'width=900,height=700,resizable=yes,scrollbars=yes');
+    }
+  </script>
+</body>
+</html>

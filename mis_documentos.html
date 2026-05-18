@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mis Documentos</title>
+  <style>
+    *{box-sizing:border-box}
+    body,html{height:100%;margin:0;font-family:Tahoma,Arial,sans-serif;background:linear-gradient(180deg,#6a8bb5 0%,#395e96 40%,#1a3f7a 100%);color:#111}
+    .window{width:760px;margin:40px auto;background:#ece9d8;border-radius:8px;border:1px solid #0d3eaa;box-shadow:0 6px 20px rgba(0,0,0,0.5);overflow:hidden}
+    .titlebar{background:linear-gradient(180deg,#4d8de8 0%,#1248b8 100%);color:#fff;padding:6px 10px;display:flex;align-items:center;justify-content:space-between}
+    .titlebar .title{font-weight:bold;font-size:13px}
+    .titlebar .title small{font-weight:normal;opacity:0.85}
+    .titlebar button{background:linear-gradient(180deg,#e87070,#c84040);border:1px solid #a82020;color:#fff;padding:3px 8px;border-radius:4px;cursor:pointer}
+    .content{padding:18px;background:#fff}
+    .docs-list{display:flex;flex-direction:column;gap:6px}
+    .doc-item{display:block;padding:10px 12px;border:1px solid #cfcfcf;background:linear-gradient(180deg,#fff,#f0f0ea);border-radius:4px;cursor:pointer;text-align:left;color:#000;text-decoration:none}
+    .doc-item:hover{background:linear-gradient(180deg,#e8f0fc,#dbe9fb);border-color:#0050a0}
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar">
+      <div class="title">Mis Documentos <small>| Carpeta Documentos</small></div>
+      <div><button onclick="window.close()">✕</button></div>
+    </div>
+    <div class="content">
+      <p>Haga doble clic o pulse sobre un documento para abrirlo.</p>
+
+      <div class="docs-list">
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Documentos/24_precontrato_venta_parcelas.pdf')">24_precontrato_venta_parcelas.pdf</a>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Documentos/21_informe_inspeccion_sanitaria.pdf')">21_informe_inspeccion_sanitaria.pdf</a>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Documentos/20_informe_agronomico_2004.pdf')">20_informe_agronomico_2004.pdf</a>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Documentos/19_transacciones_sofia.pdf')">19_transacciones_sofia.pdf</a>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Documentos/18_extracto_bancario_bruno.pdf')">18_extracto_bancario_bruno.pdf</a>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Documentos/17_contrato_distribucion_lerma.pdf')">17_contrato_distribucion_lerma.pdf</a>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Documentos/16_poder_notarial.pdf')">16_poder_notarial.pdf</a>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Documentos/14_registro_bodega_2004.pdf')">14_registro_bodega_2004.pdf</a>
+        <a class="doc-item" href="#" onclick="openDocument('file:///C:/Users/edbai/Downloads/Pistas%20o%20Informes/Pistas%20o%20Informes/Test/Documentos/09_testamento_borrador_v3.pdf')">09_testamento_borrador_v3.pdf</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openDocument(file){
+      const url = 'viewer.html?file=' + encodeURIComponent(file);
+      window.open(url, 'DocViewer', 'width=900,height=700,resizable=yes,scrollbars=yes');
+    }
+  </script>
+</body>
+</html>
