@@ -16,6 +16,30 @@
     .docs-list{display:flex;flex-direction:column;gap:6px}
     .doc-item{display:block;padding:10px 12px;border:1px solid #cfcfcf;background:linear-gradient(180deg,#fff,#f0f0ea);border-radius:4px;cursor:pointer;text-align:left;color:#000;text-decoration:none}
     .doc-item:hover{background:linear-gradient(180deg,#e8f0fc,#dbe9fb);border-color:#0050a0}
+    /* Context Menu */
+    #context-menu {
+      display: none;
+      position: absolute;
+      background: #ece9d8;
+      border: 1px solid #91a7b4;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+      padding: 2px;
+      z-index: 1000;
+      min-width: 120px;
+    }
+    .context-item {
+      padding: 4px 15px 4px 25px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .context-item:hover {
+      background: #316ac5;
+      color: white;
+    }
+    .context-separator {
+      border-top: 1px solid #91a7b4;
+      margin: 2px 0;
+    }
   </style>
 </head>
 <body>
@@ -37,14 +61,38 @@
         <a class="doc-item" href="#" onclick="openDocument('Documentos/16_poder_notarial.pdf')">16_poder_notarial.pdf</a>
         <a class="doc-item" href="#" onclick="openDocument('Documentos/14_registro_bodega_2004.pdf')">14_registro_bodega_2004.pdf</a>
         <a class="doc-item" href="#" onclick="openDocument('Documentos/09_testamento_borrador_v3.pdf')">09_testamento_borrador_v3.pdf</a>
+        <a class="doc-item" href="#" onclick="openDocument('Documentos/adn_resultado_alonso_cuervo.pdf')" oncontextmenu="showContextMenu(event)">adn_resultado_alonso_cuervo.pdf</a>
       </div>
     </div>
+  </div>
+
+  <div id="context-menu">
+    <div class="context-item" onclick="openDocument('Documentos/adn_resultado_alonso_cuervo.pdf')">Abrir</div>
+    <div class="context-separator"></div>
+    <div class="context-item" onclick="openProperties()">Propiedades</div>
   </div>
 
   <script>
     function openDocument(file){
       const url = 'viewer.html?file=' + encodeURIComponent(file);
       window.open(url, 'DocViewer', 'width=900,height=700,resizable=yes,scrollbars=yes');
+    }
+
+    const contextMenu = document.getElementById('context-menu');
+    document.addEventListener('click', () => {
+      contextMenu.style.display = 'none';
+    });
+
+    function showContextMenu(e) {
+      e.preventDefault();
+      contextMenu.style.display = 'block';
+      contextMenu.style.left = e.pageX + 'px';
+      contextMenu.style.top = e.pageY + 'px';
+    }
+
+    function openProperties() {
+      const url = 'propiedades_adn.html';
+      window.open(url, 'PropiedadesViewer', 'width=380,height=420,resizable=no,scrollbars=no');
     }
   </script>
 </body>
