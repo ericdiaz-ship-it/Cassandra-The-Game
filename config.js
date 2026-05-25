@@ -1,12 +1,19 @@
 // CASSANDRA Project - Configuration Loader (Client-side)
-// This file loads configuration from environment variables
-// API calls should be routed through /api/* endpoints (never expose keys in client code)
 
 const CONFIG = {
   // API Endpoints
   API_BASE: '/api',
   CHAT_API: '/api/chat',
   DOCS_API: '/api/documents',
+
+  // Gemini settings — llamada directa desde el navegador
+  GEMINI_KEY: 'AIzaSyCnFd_LSp1CIFlTAejAh3dxikBtjQIJyy8',
+  GEMINI_MODEL: 'gemma-4-31b-it',
+  GEMINI_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent',
+
+  // Supabase settings
+  SUPABASE_URL: 'YOUR_SUPABASE_URL',
+  SUPABASE_KEY: 'YOUR_SUPABASE_ANON_KEY',
 
   // Client-only settings
   NODE_ENV: window.location.hostname === 'localhost' ? 'development' : 'production',
