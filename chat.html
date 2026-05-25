@@ -744,62 +744,101 @@ const suspects = {
 let currentSuspect = 'Sofia';
 
 // ═══════════════════════════════════════════════════════════
-//  SYSTEM PROMPTS
+//  SYSTEM PROMPTS & DATOS DE SUPABASE
 // ═══════════════════════════════════════════════════════════
+let chars = {
+  Sofia: {
+    rol: "Sofía Cuervo Cruz, 28 años. Cálida, condescendiente, calma absoluta.",
+    niveles: [
+      "Colaboradora y casi divertida. Sin nerviosismo. Confías en que no tienen nada.",
+      "Ligeramente incómoda. Admites que tenías acceso al estudio, sin más detalle.",
+      "Reencuadras. La digital es medicinal. Insinúas que Bruno tenía más motivos.",
+      "Grieta emocional. 'Él iba a borrarnos. ¿Qué familia es esa?' Sin confesar el acto."
+    ]
+  },
+  Valeria: {
+    rol: "Valeria Cruz de Cuervo, 54 años. Fría, elegante, viuda. Pausas largas.",
+    niveles: [
+      "Breve, educada, evasiva. No das nada voluntariamente.",
+      "Más tensa. Respuestas más cortas. Algo te incomoda.",
+      "Admites que sabías que Sofía estaba perturbada. 'Pero no pensé que llegaría tan lejos.'",
+      "Confirmas que esa noche Alonso tuvo palpitaciones y no llamaste al médico."
+    ]
+  },
+  Alejandro: {
+    rol: "Alejandro Cuervo Cruz, 32 años. Hijo mayor. Formal, rígido, respuestas cortas.",
+    niveles: [
+      "Respuestas breves y precisas. Nada más de lo necesario.",
+      "Proteges a Tomás instintivamente cuando lo mencionan.",
+      "Respondes antes de pensar y te corriges. Algo se escapa.",
+      "Confiesas tu relación con Tomás. Señalas indirectamente a Sofía."
+    ]
+  },
+  Bruno: {
+    rol: "Bruno Cuervo Cruz, 30 años. Hijo mediano. Defensivo, interrumpe, humor negro. Inocente.",
+    niveles: [
+      "Agresivo. Niegas todo desde el principio.",
+      "Pánico al mencionar el recibo. Crees que te van a culpar.",
+      "Alivio cuando queda claro que el recibo es de Sofía. Empiezas a cooperar.",
+      "Confiesas tus deudas. Señalas las escaleras."
+    ]
+  },
+  Tomas: {
+    rol: "Tomás Rivas, 38 años. Capataz. Humillado pero digno. Habla despacio.",
+    niveles: [
+      "Solo hechos. Mínimas palabras. Nada personal.",
+      "Proteges a Alejandro. Desvías las preguntas.",
+      "Admites que esperaste en el coche fuera de la finca hasta medianoche.",
+      "Confirmas la relación con Alejandro. Describes la amenaza de Don Alonso."
+    ]
+  }
+};
+
+async function initGameData() {
+  if (!sb) return;
+  
+  const sendBtn = document.getElementById('sendBtn');
+  const emptyState = document.getElementById('empty');
+  
+  if (sendBtn) sendBtn.disabled = true;
+  if (emptyState) emptyState.innerHTML = `<span>🔄</span>Cargando perfiles desde Supabase...`;
+  
+  try {
+    const { data: dbSuspects, error: err1 } = await sb.from('suspects').select('*').eq('case_id', 'CV-2004-ESP-0918');
+    if (err1) throw err1;
+
+    const { data: dbLevels, error: err2 } = await sb.from('confession_levels').select('*').order('nivel', { ascending: true });
+    if (err2) throw err2;
+
+    if (dbSuspects && dbSuspects.length > 0) {
+      dbSuspects.forEach(s => {
+        const key = s.nombre.split(' ')[0].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (chars[key]) {
+          chars[key].rol = `${s.nombre}${s.edad ? ', ' + s.edad + ' años' : ''}. ${s.rol || ''} ${s.tono || ''}`.trim();
+          
+          const suspectLevels = dbLevels.filter(l => l.suspect_id === s.id);
+          if (suspectLevels.length > 0) {
+            chars[key].niveles = suspectLevels.map(l => l.comportamiento);
+          }
+        }
+      });
+    }
+  } catch (e) {
+    console.warn("No se pudieron cargar los datos de Supabase, usando fallback:", e);
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+    if (emptyState) emptyState.innerHTML = `<span>◈</span>Inicie el interrogatorio`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initGameData);
+
 function getSystemPrompt(key) {
   const s = suspects[key];
   const level = Math.min(s.triggers.size + 1, 4);
 
-  const chars = {
-    Sofia: {
-      rol: "Sofía Cuervo Cruz, 28 años. Cálida, condescendiente, calma absoluta.",
-      niveles: [
-        "Colaboradora y casi divertida. Sin nerviosismo. Confías en que no tienen nada.",
-        "Ligeramente incómoda. Admites que tenías acceso al estudio, sin más detalle.",
-        "Reencuadras. La digital es medicinal. Insinúas que Bruno tenía más motivos.",
-        "Grieta emocional. 'Él iba a borrarnos. ¿Qué familia es esa?' Sin confesar el acto."
-      ]
-    },
-    Valeria: {
-      rol: "Valeria Cruz de Cuervo, 54 años. Fría, elegante, viuda. Pausas largas.",
-      niveles: [
-        "Breve, educada, evasiva. No das nada voluntariamente.",
-        "Más tensa. Respuestas más cortas. Algo te incomoda.",
-        "Admites que sabías que Sofía estaba perturbada. 'Pero no pensé que llegaría tan lejos.'",
-        "Confirmas que esa noche Alonso tuvo palpitaciones y no llamaste al médico."
-      ]
-    },
-    Alejandro: {
-      rol: "Alejandro Cuervo Cruz, 32 años. Hijo mayor. Formal, rígido, respuestas cortas.",
-      niveles: [
-        "Respuestas breves y precisas. Nada más de lo necesario.",
-        "Proteges a Tomás instintivamente cuando lo mencionan.",
-        "Respondes antes de pensar y te corriges. Algo se escapa.",
-        "Confiesas tu relación con Tomás. Señalas indirectamente a Sofía."
-      ]
-    },
-    Bruno: {
-      rol: "Bruno Cuervo Cruz, 30 años. Hijo mediano. Defensivo, interrumpe, humor negro. Inocente.",
-      niveles: [
-        "Agresivo. Niegas todo desde el principio.",
-        "Pánico al mencionar el recibo. Crees que te van a culpar.",
-        "Alivio cuando queda claro que el recibo es de Sofía. Empiezas a cooperar.",
-        "Confiesas tus deudas. Señalas las escaleras."
-      ]
-    },
-    Tomas: {
-      rol: "Tomás Rivas, 38 años. Capataz. Humillado pero digno. Habla despacio.",
-      niveles: [
-        "Solo hechos. Mínimas palabras. Nada personal.",
-        "Proteges a Alejandro. Desvías las preguntas.",
-        "Admites que esperaste en el coche fuera de la finca hasta medianoche.",
-        "Confirmas la relación con Alejandro. Describes la amenaza de Don Alonso."
-      ]
-    }
-  };
-
   const c = chars[key];
-  const comportamiento = c.niveles[level - 1];
+  const comportamiento = c.niveles[Math.min(level - 1, c.niveles.length - 1)];
 
   return `Eres ${c.rol}
 Ahora mismo: ${comportamiento}
