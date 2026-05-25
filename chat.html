@@ -989,22 +989,21 @@ async function send() {
   const apiMessages = suspects[currentSuspect].apiHistory;
 
   const payload = {
-    system_instruction: {
+    systemInstruction: {
       parts: [{ text: getSystemPrompt(currentSuspect) }]
     },
     contents: apiMessages,
     generationConfig: {
       temperature: 0.82,
       maxOutputTokens: 180,
-      topP: 0.95,
-      thinkingConfig: { thinkingLevel: "MINIMAL" }
+      topP: 0.95
     }
   };
 
   try {
     const headers = { 'Content-Type': 'application/json' };
     if (GEMINI_KEY && !GEMINI_URL.includes('/api')) {
-      headers.Authorization = `Bearer ${GEMINI_KEY}`;
+      headers['x-goog-api-key'] = GEMINI_KEY;
     }
 
     const res = await fetch(GEMINI_URL, {
@@ -1013,13 +1012,20 @@ async function send() {
       body: JSON.stringify(payload)
     });
 
+    const responseText = await res.text();
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
+      let parsedError = null;
+      try {
+        parsedError = JSON.parse(responseText);
+      } catch (_) {
+        parsedError = null;
+      }
+      const message = parsedError?.error?.message || responseText || `HTTP ${res.status}`;
+      throw new Error(message);
     }
 
-    const data  = await res.json();
-    // Gemma 4 devuelve varios parts: algunos con thought:true (razonamiento interno)
+    const data = JSON.parse(responseText);
+    // Gemini devuelve varios parts: algunos con thought:true (razonamiento interno)
     // Solo usamos los parts sin thought, que contienen el diálogo real
     const parts = data.candidates?.[0]?.content?.parts || [];
     const raw = parts
